@@ -1,3 +1,4 @@
+use std::ops::Neg;
 use crate::constants::{BASE_MEMORY_SIZE, BASE_STACK_SIZE, REGISTER_COUNT, STACK_POINTER};
 use crate::instructions::Instruction;
 use crate::types::{Address, Bits};
@@ -107,168 +108,173 @@ impl VirtualMachine {
             }
 
             Instruction::FloatAdd(dst, lhs, rhs) => {
-                self.registers[dst as usize] = self.registers[lhs as usize] + self.registers[rhs as usize];
+                self.registers[dst as usize] = (f32::from_bits(self.registers[lhs as usize]) + f32::from_bits(self.registers[rhs as usize])).to_bits();
             }
             Instruction::FloatAddImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = self.registers[lhs as usize] + rhs;
+                self.registers[dst as usize] = (f32::from_bits(self.registers[lhs as usize]) + f32::from_bits(rhs)).to_bits();
             }
             Instruction::FloatSub(dst, lhs, rhs) => {
-                self.registers[dst as usize] = self.registers[lhs as usize] - self.registers[rhs as usize];
+                self.registers[dst as usize] = (f32::from_bits(self.registers[lhs as usize]) - f32::from_bits(self.registers[rhs as usize])).to_bits();
             }
             Instruction::FloatSubImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = self.registers[lhs as usize] - rhs;
+                self.registers[dst as usize] = (f32::from_bits(self.registers[lhs as usize]) - f32::from_bits(rhs)).to_bits();
             }
             Instruction::FloatMul(dst, lhs, rhs) => {
-                self.registers[dst as usize] = self.registers[lhs as usize] * self.registers[rhs as usize];
+                self.registers[dst as usize] = (f32::from_bits(self.registers[lhs as usize]) * f32::from_bits(self.registers[rhs as usize])).to_bits();
             }
             Instruction::FloatMulImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = self.registers[lhs as usize] * rhs;
-            }
-            Instruction::FloatDivMod(div_dst, mod_dst, lhs, rhs) => {
-                self.registers[div_dst as usize] = self.registers[lhs as usize] / self.registers[rhs as usize];
-                self.registers[mod_dst as usize] = self.registers[lhs as usize] % self.registers[rhs as usize];
-            }
-            Instruction::FloatDivModImmediate(div_dst, mod_dst, lhs, rhs) => {
-                self.registers[div_dst as usize] = self.registers[lhs as usize] / rhs;
-                self.registers[mod_dst as usize] = self.registers[lhs as usize] % rhs;
+                self.registers[dst as usize] = (f32::from_bits(self.registers[lhs as usize]) * f32::from_bits(rhs)).to_bits();
             }
             Instruction::FloatDiv(dst, lhs, rhs) => {
-                self.registers[dst as usize] = self.registers[lhs as usize] / self.registers[rhs as usize];
+                self.registers[dst as usize] = (f32::from_bits(self.registers[lhs as usize]) / f32::from_bits(self.registers[rhs as usize])).to_bits();
             }
             Instruction::FloatDivImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = self.registers[lhs as usize] / rhs;
+                self.registers[dst as usize] = (f32::from_bits(self.registers[lhs as usize]) / f32::from_bits(rhs)).to_bits();
             }
             Instruction::FloatMod(dst, lhs, rhs) => {
-                self.registers[dst as usize] = self.registers[lhs as usize] % self.registers[rhs as usize];
+                self.registers[dst as usize] = (f32::from_bits(self.registers[lhs as usize]) % f32::from_bits(self.registers[rhs as usize])).to_bits();
             }
             Instruction::FloatModImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = self.registers[lhs as usize] % rhs;
+                self.registers[dst as usize] = (f32::from_bits(self.registers[lhs as usize]) % f32::from_bits(rhs)).to_bits();
+            }
+            Instruction::FloatDivMod(dst_div, dst_mod, lhs, rhs) => {
+                self.registers[dst_div as usize] = (f32::from_bits(self.registers[lhs as usize]) / f32::from_bits(self.registers[rhs as usize])).to_bits();
+                self.registers[dst_mod as usize] = (f32::from_bits(self.registers[lhs as usize]) % f32::from_bits(self.registers[rhs as usize])).to_bits();
+            }
+            Instruction::FloatDivModImmediate(dst_div, dst_mod, lhs, rhs) => {
+                self.registers[dst_div as usize] = (f32::from_bits(self.registers[lhs as usize]) / f32::from_bits(rhs)).to_bits();
+                self.registers[dst_mod as usize] = (f32::from_bits(self.registers[lhs as usize]) % f32::from_bits(rhs)).to_bits();
             }
 
             Instruction::FloatGreaterThan(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] > self.registers[rhs as usize] { 1 } else { 0 };
+                self.registers[dst as usize] = if f32::from_bits(self.registers[lhs as usize]) > f32::from_bits(self.registers[rhs as usize]) { 1 } else { 0 };
             }
             Instruction::FloatGreaterThanImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] > rhs { 1 } else { 0 };
+                self.registers[dst as usize] = if f32::from_bits(self.registers[lhs as usize]) > f32::from_bits(rhs) { 1 } else { 0 };
             }
             Instruction::FloatLessThan(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] < self.registers[rhs as usize] { 1 } else { 0 };
+                self.registers[dst as usize] = if f32::from_bits(self.registers[lhs as usize]) < f32::from_bits(self.registers[rhs as usize]) { 1 } else { 0 };
             }
             Instruction::FloatLessThanImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] < rhs { 1 } else { 0 };
+                self.registers[dst as usize] = if f32::from_bits(self.registers[lhs as usize]) < f32::from_bits(rhs) { 1 } else { 0 };
             }
             Instruction::FloatGreaterThanOrEqual(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] >= self.registers[rhs as usize] { 1 } else { 0 };
+                self.registers[dst as usize] = if f32::from_bits(self.registers[lhs as usize]) >= f32::from_bits(self.registers[rhs as usize]) { 1 } else { 0 };
             }
             Instruction::FloatGreaterThanOrEqualImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] >= rhs { 1 } else { 0 };
+                self.registers[dst as usize] = if f32::from_bits(self.registers[lhs as usize]) >= f32::from_bits(rhs) { 1 } else { 0 };
             }
             Instruction::FloatLessThanOrEqual(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] <= self.registers[rhs as usize] { 1 } else { 0 };
+                self.registers[dst as usize] = if f32::from_bits(self.registers[lhs as usize]) <= f32::from_bits(self.registers[rhs as usize]) { 1 } else { 0 };
             }
             Instruction::FloatLessThanOrEqualImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] <= rhs { 1 } else { 0 };
+                self.registers[dst as usize] = if f32::from_bits(self.registers[lhs as usize]) <= f32::from_bits(rhs) { 1 } else { 0 };
             }
             Instruction::FloatEqual(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] == self.registers[rhs as usize] { 1 } else { 0 };
+                self.registers[dst as usize] = if f32::from_bits(self.registers[lhs as usize]) == f32::from_bits(self.registers[rhs as usize]) { 1 } else { 0 };
             }
             Instruction::FloatEqualImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] == rhs { 1 } else { 0 };
+                self.registers[dst as usize] = if f32::from_bits(self.registers[lhs as usize]) == f32::from_bits(rhs) { 1 } else { 0 };
             }
             Instruction::FloatNotEqual(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] != self.registers[rhs as usize] { 1 } else { 0 };
+                self.registers[dst as usize] = if f32::from_bits(self.registers[lhs as usize]) != f32::from_bits(self.registers[rhs as usize]) { 1 } else { 0 };
             }
             Instruction::FloatNotEqualImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] != rhs { 1 } else { 0 };
+                self.registers[dst as usize] = if f32::from_bits(self.registers[lhs as usize]) != f32::from_bits(rhs) { 1 } else { 0 };
             }
             Instruction::FloatNegate(dst, src) => {
-                self.registers[dst as usize] = -self.registers[src as usize];
+                self.registers[dst as usize] = f32::from_bits(self.registers[src as usize]).neg().to_bits();
             }
             Instruction::FloatNegateImmediate(dst, src) => {
-                self.registers[dst as usize] = -src;
+                self.registers[dst as usize] = f32::from_bits(src).neg().to_bits();
             }
 
             Instruction::SignedAdd(dst, lhs, rhs) => {
-                self.registers[dst as usize] = self.registers[lhs as usize] + self.registers[rhs as usize];
+                self.registers[dst as usize] = (self.registers[lhs as usize] as i32 + self.registers[rhs as usize] as i32) as u32;
             }
             Instruction::SignedAddImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = self.registers[lhs as usize] + rhs;
+                self.registers[dst as usize] = (self.registers[lhs as usize] as i32 + rhs as i32) as u32;
             }
             Instruction::SignedSub(dst, lhs, rhs) => {
-                self.registers[dst as usize] = self.registers[lhs as usize] - self.registers[rhs as usize];
+                self.registers[dst as usize] = (self.registers[lhs as usize] as i32 - self.registers[rhs as usize] as i32) as u32;
             }
             Instruction::SignedSubImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = self.registers[lhs as usize] - rhs;
+                self.registers[dst as usize] = (self.registers[lhs as usize] as i32 - rhs as i32) as u32;
             }
             Instruction::SignedMul(dst, lhs, rhs) => {
-                self.registers[dst as usize] = self.registers[lhs as usize] * self.registers[rhs as usize];
+                self.registers[dst as usize] = (self.registers[lhs as usize] as i32 * self.registers[rhs as usize] as i32) as u32;
             }
             Instruction::SignedMulImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = self.registers[lhs as usize] * rhs;
+                self.registers[dst as usize] = (self.registers[lhs as usize] as i32 * rhs as i32) as u32;
             }
-            Instruction::SignedDivMod(div_dst, mod_dst, lhs, rhs) => {
-                self.registers[div_dst as usize] = self.registers[lhs as usize] / self.registers[rhs as usize];
-                self.registers[mod_dst as usize] = self.registers[lhs as usize] % self.registers[rhs as usize];
+            Instruction::SignedDiv(dst, lhs, rhs) => {
+                self.registers[dst as usize] = (self.registers[lhs as usize] as i32 / self.registers[rhs as usize] as i32) as u32;
             }
-            Instruction::SignedDivModImmediate(div_dst, mod_dst, lhs, rhs) => {
-                self.registers[div_dst as usize] = self.registers[lhs as usize] / rhs;
-                self.registers[mod_dst as usize] = self.registers[lhs as usize] % rhs;
+            Instruction::SignedDivImmediate(dst, lhs, rhs) => {
+                self.registers[dst as usize] = (self.registers[lhs as usize] as i32 / rhs as i32) as u32;
             }
-            Instruction::SignedDiv(div_dst, lhs, rhs) => {
-                self.registers[div_dst as usize] = self.registers[lhs as usize] / self.registers[rhs as usize];
+            Instruction::SignedMod(dst, lhs, rhs) => {
+                self.registers[dst as usize] = (self.registers[lhs as usize] as i32 % self.registers[rhs as usize] as i32) as u32;
             }
-            Instruction::SignedDivImmediate(div_dst, lhs, rhs) => {
-                self.registers[div_dst as usize] = self.registers[lhs as usize] / rhs;
+            Instruction::SignedModImmediate(dst, lhs, rhs) => {
+                self.registers[dst as usize] = (self.registers[lhs as usize] as i32 % rhs as i32) as u32;
             }
-            Instruction::SignedMod(mod_dst, lhs, rhs) => {
-                self.registers[mod_dst as usize] = self.registers[lhs as usize] % self.registers[rhs as usize];
+            Instruction::SignedDivMod(dst_div, dst_mod, lhs, rhs) => {
+                let lhs = self.registers[lhs as usize] as i32;
+                let rhs = self.registers[rhs as usize] as i32;
+                self.registers[dst_div as usize] = (lhs / rhs) as u32;
+                self.registers[dst_mod as usize] = (lhs % rhs) as u32;
             }
-            Instruction::SignedModImmediate(mod_dst, lhs, rhs) => {
-                self.registers[mod_dst as usize] = self.registers[lhs as usize] % rhs;
+            Instruction::SignedDivModImmediate(dst_div, dst_mod, lhs, rhs) => {
+                let lhs = self.registers[lhs as usize] as i32;
+                let rhs = rhs as i32;
+                self.registers[dst_div as usize] = (lhs / rhs) as u32;
+                self.registers[dst_mod as usize] = (lhs % rhs) as u32;
             }
 
             Instruction::SignedGreaterThan(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] > self.registers[rhs as usize] { 1 } else { 0 };
+                self.registers[dst as usize] = if self.registers[lhs as usize] as i32 > self.registers[rhs as usize] as i32 { 1 } else { 0 };
             }
             Instruction::SignedGreaterThanImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] > rhs { 1 } else { 0 };
-            }
-            Instruction::SignedLessThan(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] < self.registers[rhs as usize] { 1 } else { 0 };
-            }
-            Instruction::SignedLessThanImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] < rhs { 1 } else { 0 };
+                self.registers[dst as usize] = if self.registers[lhs as usize] as i32 > rhs as i32 { 1 } else { 0 };
             }
             Instruction::SignedGreaterThanOrEqual(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] >= self.registers[rhs as usize] { 1 } else { 0 };
+                self.registers[dst as usize] = if self.registers[lhs as usize] as i32 >= self.registers[rhs as usize] as i32 { 1 } else { 0 };
             }
             Instruction::SignedGreaterThanOrEqualImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] >= rhs { 1 } else { 0 };
+                self.registers[dst as usize] = if self.registers[lhs as usize] as i32 >= rhs as i32 { 1 } else { 0 };
+            }
+            Instruction::SignedLessThan(dst, lhs, rhs) => {
+                self.registers[dst as usize] = if (self.registers[lhs as usize] as i32) < (self.registers[rhs as usize] as i32) { 1 } else { 0 };
+            }
+            Instruction::SignedLessThanImmediate(dst, lhs, rhs) => {
+                self.registers[dst as usize] = if (self.registers[lhs as usize] as i32) < (rhs as i32) { 1 } else { 0 };
             }
             Instruction::SignedLessThanOrEqual(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] <= self.registers[rhs as usize] { 1 } else { 0 };
+                self.registers[dst as usize] = if self.registers[lhs as usize] as i32 <= self.registers[rhs as usize] as i32 { 1 } else { 0 };
             }
             Instruction::SignedLessThanOrEqualImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] <= rhs { 1 } else { 0 };
+                self.registers[dst as usize] = if self.registers[lhs as usize] as i32 <= rhs as i32 { 1 } else { 0 };
             }
             Instruction::SignedEqual(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] == self.registers[rhs as usize] { 1 } else { 0 };
+                self.registers[dst as usize] = if self.registers[lhs as usize] as i32 == self.registers[rhs as usize] as i32 { 1 } else { 0 };
             }
             Instruction::SignedEqualImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] == rhs { 1 } else { 0 };
+                self.registers[dst as usize] = if self.registers[lhs as usize] as i32 == rhs as i32 { 1 } else { 0 };
             }
             Instruction::SignedNotEqual(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] != self.registers[rhs as usize] { 1 } else { 0 };
+                self.registers[dst as usize] = if self.registers[lhs as usize] as i32 != self.registers[rhs as usize] as i32 { 1 } else { 0 };
             }
             Instruction::SignedNotEqualImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] != rhs { 1 } else { 0 };
+                self.registers[dst as usize] = if self.registers[lhs as usize] as i32 != rhs as i32 { 1 } else { 0 };
             }
             Instruction::SignedNegate(dst, src) => {
-                self.registers[dst as usize] = -self.registers[src as usize];
+                self.registers[dst as usize] = -(self.registers[src as usize] as i32) as u32;
             }
             Instruction::SignedNegateImmediate(dst, src) => {
-                self.registers[dst as usize] = -src;
+                self.registers[dst as usize] = -(src as i32) as u32;
             }
+
 
             Instruction::And(dst, lhs, rhs) => {
                 self.registers[dst as usize] = self.registers[lhs as usize] & self.registers[rhs as usize];
