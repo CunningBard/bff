@@ -1,5 +1,5 @@
 use bff;
 
 fn main() {
-    let mut vm = bff::VirtualMachine::new();
+    let mut vm = bff::virtual_machine::VirtualMachine::new();
 }
