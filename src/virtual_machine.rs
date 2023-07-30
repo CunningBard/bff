@@ -314,10 +314,18 @@ impl VirtualMachine {
                 self.registers[dst as usize] = self.registers[lhs as usize] >> rhs;
             }
 
-            Instruction::Jump(address) => {
+            Instruction::Jump(register) => {
+                self.program_counter = (self.registers[register as usize] - 1) as usize;
+            }
+            Instruction::JumpImmediate(address) => {
                 self.program_counter = (address - 1) as usize;
             }
-            Instruction::JumpIfNotZero(src, address) => {
+            Instruction::JumpIfNotZero(register, address_register) => {
+                if self.registers[register as usize] != 0 {
+                    self.program_counter = (self.registers[address_register as usize] - 1) as usize;
+                }
+            }
+            Instruction::JumpIfNotZeroImmediate(src, address) => {
                 if self.registers[src as usize] != 0 {
                     self.program_counter = (address - 1) as usize;
                 }

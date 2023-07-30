@@ -99,8 +99,10 @@ pub enum Instruction {
     RightShift(Register, Register, Register),
     RightShiftImmediate(Register, Register, Bits),
 
-    Jump(Address),
-    JumpIfNotZero(Register, Address),
+    Jump(Register),
+    JumpImmediate(Address),
+    JumpIfNotZero(Register, Register),
+    JumpIfNotZeroImmediate(Register, Address),
 
     Move(Register, Register),
     MoveImmediate(Register, Bits),
