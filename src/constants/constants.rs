@@ -1,5 +1,5 @@
 use std::mem::size_of;
-use crate::types::{Bits, Register};
+use crate::constants::types::{Bits, Register};
 
 pub const GENERAL_PURPOSE_REGISTER_COUNT: usize = 16;
 pub const REGISTER_COUNT: usize = GENERAL_PURPOSE_REGISTER_COUNT + 1; // +1 for stack pointer

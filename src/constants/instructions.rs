@@ -1,4 +1,4 @@
-use crate::types::{Address, Bits, Register};
+use crate::constants::types::{Address, Bits, Register};
 
 #[derive(Copy, Clone, Debug)]
 pub enum Instruction {
