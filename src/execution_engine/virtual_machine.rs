@@ -384,4 +384,9 @@ impl VirtualMachine {
             self.program_counter += 1;
         }
     }
+
+    pub fn load_program(&mut self, instruction_list: Vec<Instruction>) {
+        self.instruction_list = vec![Instruction::Nop];
+        self.instruction_list.extend(instruction_list);
+    }
 }

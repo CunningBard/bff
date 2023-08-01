@@ -1,5 +1,3 @@
-pub mod instructions;
+pub mod execution_engine;
 pub mod constants;
-pub mod types;
-pub mod virtual_machine;
 
