@@ -1,7 +1,7 @@
 use std::ops::Neg;
-use crate::constants::{BASE_MEMORY_SIZE, BASE_STACK_SIZE, REGISTER_COUNT, STACK_POINTER};
-use crate::instructions::Instruction;
-use crate::types::{Address, Bits};
+use crate::constants::constants::{BASE_MEMORY_SIZE, BASE_STACK_SIZE, REGISTER_COUNT, STACK_POINTER};
+use crate::constants::instructions::Instruction;
+use crate::constants::types::{Address, Bits};
 
 #[derive(Debug)]
 pub struct VirtualMachine {
