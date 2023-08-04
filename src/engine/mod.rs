@@ -1,2 +1,3 @@
 pub mod virtual_machine;
-pub mod program_reader;
+pub mod bfo_reader;
+pub mod program;

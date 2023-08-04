@@ -301,16 +301,16 @@ impl VirtualMachine {
                 self.registers[dst as usize] = !src;
             }
 
-            Instruction::LeftShift(dst, lhs, rhs) => {
+            Instruction::ShiftLeft(dst, lhs, rhs) => {
                 self.registers[dst as usize] = self.registers[lhs as usize] << self.registers[rhs as usize];
             }
-            Instruction::LeftShiftImmediate(dst, lhs, rhs) => {
+            Instruction::ShiftLeftImmediate(dst, lhs, rhs) => {
                 self.registers[dst as usize] = self.registers[lhs as usize] << rhs;
             }
-            Instruction::RightShift(dst, lhs, rhs) => {
+            Instruction::ShiftRight(dst, lhs, rhs) => {
                 self.registers[dst as usize] = self.registers[lhs as usize] >> self.registers[rhs as usize];
             }
-            Instruction::RightShiftImmediate(dst, lhs, rhs) => {
+            Instruction::ShiftRightImmediate(dst, lhs, rhs) => {
                 self.registers[dst as usize] = self.registers[lhs as usize] >> rhs;
             }
 
@@ -320,12 +320,12 @@ impl VirtualMachine {
             Instruction::JumpImmediate(address) => {
                 self.program_counter = (address - 1) as usize;
             }
-            Instruction::JumpIfNotZero(register, address_register) => {
+            Instruction::JumpNotZero(register, address_register) => {
                 if self.registers[register as usize] != 0 {
                     self.program_counter = (self.registers[address_register as usize] - 1) as usize;
                 }
             }
-            Instruction::JumpIfNotZeroImmediate(src, address) => {
+            Instruction::JumpNotZeroImmediate(src, address) => {
                 if self.registers[src as usize] != 0 {
                     self.program_counter = (address - 1) as usize;
                 }
@@ -354,16 +354,16 @@ impl VirtualMachine {
             Instruction::Store(address, src) => {
                 self.memory[address as usize] = self.registers[src as usize];
             }
-            Instruction::StoreImmediate(address, src) => {
-                self.memory[address as usize] = src;
-            }
+            // Instruction::StoreImmediate(address, src) => { // comment out because it's instruction size is bigger than 8 bytes
+            //     self.memory[address as usize] = src;
+            // }
             Instruction::Load(dst, address) => {
                 let address = self.registers[address as usize];
                 self.registers[dst as usize] = self.memory[address as usize];
             }
-            Instruction::LoadImmediate(dst, address) => {
-                self.registers[dst as usize] = self.memory[address as usize];
-            }
+            // Instruction::LoadImmediate(dst, address) => { // comment out because it's instruction size is bigger than 8 bytes
+            //     self.registers[dst as usize] = self.memory[address as usize];
+            // }
 
             Instruction::Call(address) => {
                 self.call_stack.push(self.program_counter as Address);
