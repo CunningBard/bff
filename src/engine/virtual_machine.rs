@@ -1,14 +1,14 @@
 use std::ops::Neg;
 use crate::constants::constants::{BASE_MEMORY_SIZE, BASE_STACK_SIZE, REGISTER_COUNT, STACK_POINTER};
 use crate::constants::instructions::Instruction;
-use crate::constants::types::{Address, Bits};
+use crate::constants::types::{Address, Bits, Byte};
 
 #[derive(Debug)]
 pub struct VirtualMachine {
     // stack pointer is always register 0, or registers[0]
     pub registers: [Bits; REGISTER_COUNT],
     pub stack: Vec<Bits>,
-    pub memory: Vec<Bits>,
+    pub memory: Vec<Byte>,
     pub call_stack: Vec<Address>,
     pub program_counter: usize,
     pub instruction_list: Vec<Instruction>,
@@ -351,19 +351,52 @@ impl VirtualMachine {
                 self.registers[dst as usize] = self.stack[self.registers[STACK_POINTER as usize] as usize];
             }
 
-            Instruction::Store(address, src) => {
-                self.memory[address as usize] = self.registers[src as usize];
+            Instruction::Store(address, src, byte_num) => {
+                match byte_num {
+                    0 => {
+                        let value = self.registers[src as usize].to_le_bytes();
+                        self.memory[src as usize] = value[0];
+                        self.memory[src as usize + 1] = value[1];
+                        self.memory[src as usize + 2] = value[2];
+                        self.memory[src as usize + 3] = value[3];
+                    }
+                    2 => {
+                        let value = (self.registers[src as usize] as u16).to_le_bytes();
+                        self.memory[src as usize] = value[0];
+                        self.memory[src as usize + 1] = value[1];
+                    }
+                    1 => {
+                        self.memory[src as usize] = self.registers[src as usize] as u8;
+                    }
+                    _ => {
+                        panic!("byte size is invalid! for store instruction");
+                    }
+                }
             }
-            // Instruction::StoreImmediate(address, src) => { // comment out because it's instruction size is bigger than 8 bytes
-            //     self.memory[address as usize] = src;
-            // }
-            Instruction::Load(dst, address) => {
-                let address = self.registers[address as usize];
-                self.registers[dst as usize] = self.memory[address as usize];
+            Instruction::Load(dst, address, byte_num) => {
+                self.registers[dst as usize] = match byte_num {
+                    0 => {
+                        let mut value = [0u8; 4];
+                        value[0] = self.memory[address as usize];
+                        value[1] = self.memory[address as usize + 1];
+                        value[2] = self.memory[address as usize + 2];
+                        value[3] = self.memory[address as usize + 3];
+                        u32::from_le_bytes(value)
+                    }
+                    2 => {
+                        let mut value = [0u8; 2];
+                        value[0] = self.memory[address as usize];
+                        value[1] = self.memory[address as usize + 1];
+                        u16::from_le_bytes(value) as u32
+                    }
+                    1 => {
+                        self.memory[address as usize] as u32
+                    }
+                    _ => {
+                        panic!("byte size is invalid! for load instruction");
+                    }
+                };
             }
-            // Instruction::LoadImmediate(dst, address) => { // comment out because it's instruction size is bigger than 8 bytes
-            //     self.registers[dst as usize] = self.memory[address as usize];
-            // }
 
             Instruction::Call(address) => {
                 self.call_stack.push(self.program_counter as Address);
