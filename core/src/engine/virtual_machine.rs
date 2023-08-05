@@ -355,18 +355,18 @@ impl VirtualMachine {
                 match byte_num {
                     0 => {
                         let value = self.registers[src as usize].to_le_bytes();
-                        self.memory[src as usize] = value[0];
-                        self.memory[src as usize + 1] = value[1];
-                        self.memory[src as usize + 2] = value[2];
-                        self.memory[src as usize + 3] = value[3];
+                        self.memory[address as usize] = value[0];
+                        self.memory[address as usize + 1] = value[1];
+                        self.memory[address as usize + 2] = value[2];
+                        self.memory[address as usize + 3] = value[3];
                     }
                     2 => {
                         let value = (self.registers[src as usize] as u16).to_le_bytes();
-                        self.memory[src as usize] = value[0];
-                        self.memory[src as usize + 1] = value[1];
+                        self.memory[address as usize] = value[0];
+                        self.memory[address as usize + 1] = value[1];
                     }
                     1 => {
-                        self.memory[src as usize] = self.registers[src as usize] as u8;
+                        self.memory[address as usize] = self.registers[src as usize] as u8;
                     }
                     _ => {
                         panic!("byte size is invalid! for store instruction");
