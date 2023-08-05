@@ -4,3 +4,7 @@ members = [
     "core",
     "virtual_machine"
 ]
+
+default-members = [
+    "virtual_machine"
+]
