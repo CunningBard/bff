@@ -2,9 +2,9 @@
 members = [
     "assembly",
     "core",
-    "virtual_machine"
+    "runner"
 ]
 
 default-members = [
-    "virtual_machine"
+    "runner"
 ]

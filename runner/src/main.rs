@@ -1,5 +1,6 @@
 use std::collections::vec_deque::VecDeque;
-use bff;
+use bffcore;
+use bffcore::engine::bfo_reader::BFOReader;
 
 fn main() {
     let mut args: VecDeque<String> = std::env::args().collect();
@@ -10,8 +11,10 @@ fn main() {
     if args.len() > 0 && !args[0].starts_with("-"){
         file_path = args.pop_front().unwrap();
         if !file_path.ends_with(".bfo") {
-            println!("Warning: Given File is not a '.bfo' file");
+            eprintln!("Warning: Given File is not a '.bfo' file");
         }
+    } else {
+        eprintln!("Warning: Default File not found, using '{}' instead", file_path);
     }
 
     while args.len() != 0 {
@@ -28,4 +31,15 @@ fn main() {
             }
         }
     }
+
+    let contents = match std::fs::read(file_path.clone()){
+        Ok(contents) => contents,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            panic!("Couldnt read {}", file_path)
+        }
+    };
+
+    let mut bff_program = BFOReader::read_program(contents);
+    bff_program.execute();
 }
