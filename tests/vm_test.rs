@@ -1,5 +1,6 @@
 use bff;
 use bff::constants::instructions::Instruction;
+use bff::engine::virtual_machine::VirtualMachine;
 
 #[test]
 fn unsigned_add() {
@@ -7,7 +8,7 @@ fn unsigned_add() {
     let rhs = 2;
     let expected = lhs + rhs;
 
-    let mut vm = bff::virtual_machine::VirtualMachine::new();
+    let mut vm = VirtualMachine::new();
     vm.load_program(vec![
         Instruction::MoveImmediate(1, lhs),
         Instruction::MoveImmediate(2, rhs),
@@ -23,7 +24,7 @@ fn unsigned_sub() {
     let rhs = 2;
     let expected = lhs - rhs;
 
-    let mut vm = bff::virtual_machine::VirtualMachine::new();
+    let mut vm = VirtualMachine::new();
     vm.load_program(vec![
         Instruction::MoveImmediate(1, lhs),
         Instruction::MoveImmediate(2, rhs),
@@ -39,7 +40,7 @@ fn unsigned_mul() {
     let rhs = 2;
     let expected = lhs * rhs;
 
-    let mut vm = bff::virtual_machine::VirtualMachine::new();
+    let mut vm = VirtualMachine::new();
     vm.load_program(vec![
         Instruction::MoveImmediate(1, lhs),
         Instruction::MoveImmediate(2, rhs),
@@ -55,7 +56,7 @@ fn unsigned_div() {
     let rhs = 2;
     let expected = lhs / rhs;
 
-    let mut vm = bff::virtual_machine::VirtualMachine::new();
+    let mut vm = VirtualMachine::new();
     vm.load_program(vec![
         Instruction::MoveImmediate(1, lhs),
         Instruction::MoveImmediate(2, rhs),
@@ -71,7 +72,7 @@ fn unsigned_mod() {
     let rhs = 2;
     let expected = lhs % rhs;
 
-    let mut vm = bff::virtual_machine::VirtualMachine::new();
+    let mut vm = VirtualMachine::new();
     vm.load_program(vec![
         Instruction::MoveImmediate(1, lhs),
         Instruction::MoveImmediate(2, rhs),
@@ -88,7 +89,7 @@ fn unsigned_div_mod() {
     let expected_div = lhs / rhs;
     let expected_mod = lhs % rhs;
 
-    let mut vm = bff::virtual_machine::VirtualMachine::new();
+    let mut vm = VirtualMachine::new();
     vm.load_program(vec![
         Instruction::MoveImmediate(1, lhs),
         Instruction::MoveImmediate(2, rhs),
@@ -105,7 +106,7 @@ fn unsigned_add_imm() {
     let rhs = 2;
     let expected = lhs + rhs;
 
-    let mut vm = bff::virtual_machine::VirtualMachine::new();
+    let mut vm = VirtualMachine::new();
     vm.load_program(vec![
         Instruction::MoveImmediate(1, lhs),
         Instruction::AddImmediate(1, 1,rhs),
@@ -120,7 +121,7 @@ fn unsigned_sub_imm() {
     let rhs = 2;
     let expected = lhs - rhs;
 
-    let mut vm = bff::virtual_machine::VirtualMachine::new();
+    let mut vm = VirtualMachine::new();
     vm.load_program(vec![
         Instruction::MoveImmediate(1, lhs),
         Instruction::SubImmediate(1, 1, rhs),
@@ -135,7 +136,7 @@ fn unsigned_mul_imm() {
     let rhs = 2;
     let expected = lhs * rhs;
 
-    let mut vm = bff::virtual_machine::VirtualMachine::new();
+    let mut vm = VirtualMachine::new();
     vm.load_program(vec![
         Instruction::MoveImmediate(1, lhs),
         Instruction::MulImmediate(1, 1, rhs),
@@ -150,7 +151,7 @@ fn unsigned_div_imm() {
     let rhs = 2;
     let expected = lhs / rhs;
 
-    let mut vm = bff::virtual_machine::VirtualMachine::new();
+    let mut vm = VirtualMachine::new();
     vm.load_program(vec![
         Instruction::MoveImmediate(1, lhs),
         Instruction::DivImmediate(1, 1, rhs),
@@ -165,7 +166,7 @@ fn unsigned_mod_imm() {
     let rhs = 2;
     let expected = lhs % rhs;
 
-    let mut vm = bff::virtual_machine::VirtualMachine::new();
+    let mut vm = VirtualMachine::new();
     vm.load_program(vec![
         Instruction::MoveImmediate(1, lhs),
         Instruction::ModImmediate(1, 1, rhs),
@@ -181,7 +182,7 @@ fn unsigned_div_mod_imm() {
     let expected_div = lhs / rhs;
     let expected_mod = lhs % rhs;
 
-    let mut vm = bff::virtual_machine::VirtualMachine::new();
+    let mut vm = VirtualMachine::new();
     vm.load_program(vec![
         Instruction::MoveImmediate(1, lhs),
         Instruction::DivModImmediate(3, 4, 1, rhs),
