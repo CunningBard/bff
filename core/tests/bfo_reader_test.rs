@@ -19,5 +19,7 @@ fn instruction_conversion_integrity_check(){
         assert_eq!(raw[5], bytes[5]);
         assert_eq!(raw[6], bytes[6]);
         assert_eq!(raw[7], bytes[7]);
+
+        println!("Passed: {:?}", instruction)
     }
 }
