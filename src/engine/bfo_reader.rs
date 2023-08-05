@@ -1,6 +1,6 @@
 use crate::constants::constants::INSTRUCTION_SIZE;
 use crate::constants::instructions::Instruction;
-use crate::constants::types::{Address, Bits, Register};
+use crate::constants::types::{Register};
 use crate::engine::program::BFFProgram;
 
 pub struct BFOReader {}
