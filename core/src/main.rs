@@ -9,7 +9,7 @@ fn string_to_instructions(address: u32, register: u8, input: &str) -> Vec<Instru
     let mut instructions = Vec::new();
     let mut index = 0;
     while input.len() > index {
-        if 4 % (input.len() - index) > 0 {
+        if (input.len() - index) >= 4 {
             let mut byte_array: [u8; 4] = input[index..index + 4].as_bytes().try_into().unwrap();
             let value = u32::from_le_bytes(byte_array);
 
@@ -20,7 +20,7 @@ fn string_to_instructions(address: u32, register: u8, input: &str) -> Vec<Instru
                 ]
             );
             index += 4;
-        } else if 2 % (input.len() - index) > 0 {
+        } else if (input.len() - index) >= 2 {
             let mut byte_array: [u8; 2] = input[index..index + 2].as_bytes().try_into().unwrap();
             let value = u16::from_le_bytes(byte_array);
 
