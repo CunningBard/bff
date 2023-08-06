@@ -1,0 +1,149 @@
+natural_newline = _{"␍␊" | "\r\n" | "\n"}
+WHITESPACE = _{ " " | "\t" }
+
+identifier = @{ "_"* ~ ASCII_ALPHANUMERIC ~ (ASCII_ALPHANUMERIC | "_" )* }
+register = @{ "reg" ~ ASCII_DIGIT+ }
+
+unsigned = @{ ASCII_DIGIT+ }
+signed = @{ "-"? ~ ASCII_DIGIT+ }
+float = @{ signed ~ "." ~ unsigned }
+
+value = _{ float | signed | unsigned | register }
+
+value_pair = _{
+    register ~ "," ~ value
+}
+
+reg_assign = _{
+    register ~ "=" ~ value
+}
+
+operation_type = _{ "u" | "s" | "f" }
+
+
+
+move_ = _{
+    reg_assign ~ (register | float | signed | unsigned)
+}
+
+equal = _{
+    register ~ "=" ~ register ~ "==" ~ value
+}
+
+not_equal = _{
+    register ~ "=" ~ register ~ "!=" ~ value
+}
+
+not = _{
+    register ~ "=" ~ "!" ~ value
+}
+
+and = _{
+    register ~ "=" ~ register ~ "&&" ~ value
+}
+
+or = _{
+    register ~ "=" ~ register ~ "||" ~ value
+}
+
+xor = _{
+    register ~ "=" ~ register ~ "^^" ~ value
+}
+
+shift_left = _{
+    register ~ "=" ~ operation_type ~ register ~ "<<" ~ value
+}
+
+shift_right = _{
+    register ~ "=" ~ operation_type ~ register ~ ">>" ~ value
+}
+
+jump = _{
+    "jmp" ~ identifier
+}
+
+jnz = _{
+    "jnz" ~ identifier
+}
+
+push = _{
+    "push" ~ value
+}
+
+pop = _{
+    "pop" ~ register
+}
+
+call = _{
+    "call" ~ (identifier | unsigned)
+}
+
+ret = _{
+    "ret"
+}
+
+store = _{
+    (unsigned | register) ~ "<-" ~ register ~ ("0" | "2" | "3" )?
+}
+
+load = _{
+    register ~ "<-" ~ (unsigned | register) ~ ("0" | "2" | "3" )?
+}
+
+add = _{
+    register ~ "=" ~ operation_type ~ register ~ "+" ~ value
+}
+
+sub = _{
+    register ~ "=" ~ operation_type ~ register ~ "-" ~ value
+}
+
+mul = _{
+    register ~ "=" ~ operation_type ~ register ~ "*" ~ value
+}
+
+div = _{
+    register ~ "=" ~ operation_type ~ register ~ "/" ~ value
+}
+
+mod_ = _{
+    register ~ "=" ~ operation_type ~ register ~ "%" ~ value
+}
+
+divmod = _{
+    register ~ "," ~ register ~ "=" ~ operation_type ~ register ~ "/%" ~ value
+}
+
+greater_than = _{
+    register ~ "=" ~ operation_type ~ register ~ ">" ~ value
+}
+
+less_than = _{
+    register ~ "=" ~ operation_type ~ register ~ "<" ~ value
+}
+
+greater_than_or_equal = _{
+    register ~ "=" ~ operation_type ~ register ~ ">=" ~ value
+}
+
+less_than_or_equal = _{
+    register ~ "=" ~ operation_type ~ register ~ "<=" ~ value
+}
+
+negate = _{
+    register ~ "=" ~ operation_type ~ "-" ~ value
+}
+
+
+
+
+
+
+
+statement = _{
+    natural_newline
+}
+
+
+
+program = _{ SOI ~ statement* ~ EOI}
