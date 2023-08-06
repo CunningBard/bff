@@ -1,9 +1,9 @@
-use bff::constants::constants::INSTRUCTION_COUNT;
-use bff::constants::instructions::Instruction;
+use bffcore::constants::constants::INSTRUCTION_COUNT;
+use bffcore::constants::instructions::Instruction;
 
 #[test]
 fn instruction_conversion_integrity_check(){
-    assert_eq!(INSTRUCTION_COUNT, 102);
+    assert_eq!(INSTRUCTION_COUNT, 95);
 
 
     for i in 0..INSTRUCTION_COUNT as u8 {

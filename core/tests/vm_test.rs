@@ -1,6 +1,6 @@
-use bff;
-use bff::constants::instructions::Instruction;
-use bff::engine::virtual_machine::VirtualMachine;
+use bffcore;
+use bffcore::constants::instructions::Instruction;
+use bffcore::engine::virtual_machine::VirtualMachine;
 
 #[test]
 fn unsigned_add() {
@@ -190,4 +190,18 @@ fn unsigned_div_mod_imm() {
     vm.execute_instruction_list();
     assert_eq!(vm.registers[3], expected_div);
     assert_eq!(vm.registers[4], expected_mod);
+}
+
+#[test]
+fn print_hello_world(){
+    let mut vm = VirtualMachine::new();
+    vm.load_program(vec![
+        Instruction::MoveImmediate(1, 72),
+        Instruction::Store(0, 1, 3),
+        Instruction::PushImmediate(1), // length
+        Instruction::PushImmediate(0), // address
+        Instruction::PushImmediate(1), // syscall number
+        Instruction::SystemCall
+    ]);
+    vm.execute_instruction_list();
 }

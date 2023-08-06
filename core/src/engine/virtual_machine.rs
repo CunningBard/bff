@@ -1,3 +1,5 @@
+use std::io;
+use std::io::Write;
 use std::ops::Neg;
 use crate::constants::constants::{BASE_MEMORY_SIZE, BASE_STACK_SIZE, REGISTER_COUNT, STACK_POINTER};
 use crate::constants::instructions::Instruction;
@@ -24,6 +26,15 @@ impl VirtualMachine {
             program_counter: 0,
             instruction_list: vec![Instruction::Nop],
         }
+    }
+    pub fn pop_stack(&mut self) -> Bits {
+        self.registers[STACK_POINTER as usize] -= 1;
+        let value = self.stack[self.registers[STACK_POINTER as usize] as usize];
+        value
+    }
+    pub fn push_stack(&mut self, value: Bits) {
+        self.stack[self.registers[STACK_POINTER as usize] as usize] = value;
+        self.registers[STACK_POINTER as usize] += 1;
     }
     pub fn execute_single_instruction(&mut self){
         let instruction = &self.instruction_list[self.program_counter];
@@ -170,18 +181,6 @@ impl VirtualMachine {
             Instruction::FloatLessThanOrEqualImmediate(dst, lhs, rhs) => {
                 self.registers[dst as usize] = if f32::from_bits(self.registers[lhs as usize]) <= f32::from_bits(rhs) { 1 } else { 0 };
             }
-            Instruction::FloatEqual(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if f32::from_bits(self.registers[lhs as usize]) == f32::from_bits(self.registers[rhs as usize]) { 1 } else { 0 };
-            }
-            Instruction::FloatEqualImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if f32::from_bits(self.registers[lhs as usize]) == f32::from_bits(rhs) { 1 } else { 0 };
-            }
-            Instruction::FloatNotEqual(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if f32::from_bits(self.registers[lhs as usize]) != f32::from_bits(self.registers[rhs as usize]) { 1 } else { 0 };
-            }
-            Instruction::FloatNotEqualImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if f32::from_bits(self.registers[lhs as usize]) != f32::from_bits(rhs) { 1 } else { 0 };
-            }
             Instruction::FloatNegate(dst, src) => {
                 self.registers[dst as usize] = f32::from_bits(self.registers[src as usize]).neg().to_bits();
             }
@@ -256,18 +255,6 @@ impl VirtualMachine {
             Instruction::SignedLessThanOrEqualImmediate(dst, lhs, rhs) => {
                 self.registers[dst as usize] = if self.registers[lhs as usize] as i32 <= rhs as i32 { 1 } else { 0 };
             }
-            Instruction::SignedEqual(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] as i32 == self.registers[rhs as usize] as i32 { 1 } else { 0 };
-            }
-            Instruction::SignedEqualImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] as i32 == rhs as i32 { 1 } else { 0 };
-            }
-            Instruction::SignedNotEqual(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] as i32 != self.registers[rhs as usize] as i32 { 1 } else { 0 };
-            }
-            Instruction::SignedNotEqualImmediate(dst, lhs, rhs) => {
-                self.registers[dst as usize] = if self.registers[lhs as usize] as i32 != rhs as i32 { 1 } else { 0 };
-            }
             Instruction::SignedNegate(dst, src) => {
                 self.registers[dst as usize] = -(self.registers[src as usize] as i32) as u32;
             }
@@ -339,16 +326,13 @@ impl VirtualMachine {
             }
 
             Instruction::Push(src) => {
-                self.stack[self.registers[STACK_POINTER as usize] as usize] = self.registers[src as usize];
-                self.registers[STACK_POINTER as usize] += 1;
+                self.push_stack(self.registers[src as usize])
             }
             Instruction::PushImmediate(src) => {
-                self.stack[self.registers[STACK_POINTER as usize] as usize] = src;
-                self.registers[STACK_POINTER as usize] += 1;
+                self.push_stack(src)
             }
             Instruction::Pop(dst) => {
-                self.registers[STACK_POINTER as usize] -= 1;
-                self.registers[dst as usize] = self.stack[self.registers[STACK_POINTER as usize] as usize];
+                self.registers[dst as usize] = self.pop_stack();
             }
 
             Instruction::Store(address, src, byte_num) => {
@@ -365,7 +349,7 @@ impl VirtualMachine {
                         self.memory[address as usize] = value[0];
                         self.memory[address as usize + 1] = value[1];
                     }
-                    1 => {
+                    3 => {
                         self.memory[address as usize] = self.registers[src as usize] as u8;
                     }
                     _ => {
@@ -389,7 +373,7 @@ impl VirtualMachine {
                         value[1] = self.memory[address as usize + 1];
                         u16::from_le_bytes(value) as u32
                     }
-                    1 => {
+                    3 => {
                         self.memory[address as usize] as u32
                     }
                     _ => {
@@ -407,6 +391,46 @@ impl VirtualMachine {
                     None => { panic!("Call stack underflow!"); }
                     Some(address) => { address as usize }
                 };
+            }
+            Instruction::SystemCall => {
+                let syscall_num = self.pop_stack();
+                match syscall_num {
+                    0 => {
+                        let mut input = String::new();
+                        io::stdin().read_line(&mut input).expect("Failed to read line");
+                        let input = input.trim();
+                        let input = input.parse::<u32>().expect("Failed to parse input");
+                        self.push_stack(input);
+                    }
+                    1 => {
+                        let file_descriptor = self.pop_stack();
+                        let address = self.pop_stack();
+                        let length = self.pop_stack();
+
+                        let mut buffer = vec![0u8; length as usize];
+                        for i in 0..length {
+                            buffer[i as usize] = self.memory[(address + i) as usize];
+                        }
+                        let string = String::from_utf8(buffer).expect("Failed to parse string");
+
+                        match file_descriptor {
+                            0 => {
+                                let mut stdout = io::stdout();
+                                stdout.write_all(string.as_bytes()).expect("Failed to write to stdout");
+                            }
+                            1 => {
+                                let mut stderr = io::stderr();
+                                stderr.write_all(string.as_bytes()).expect("Failed to write to stderr");
+                            }
+                            _ => {
+                                panic!("Invalid file descriptor!");
+                            }
+                        }
+                    }
+                    _ => {
+                        panic!("Invalid syscall number!");
+                    }
+                }
             }
         }
     }

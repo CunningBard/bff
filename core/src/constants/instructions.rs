@@ -52,10 +52,6 @@ pub enum Instruction {
     FloatGreaterThanOrEqualImmediate(Register, Register, Bits),
     FloatLessThanOrEqual(Register, Register, Register),
     FloatLessThanOrEqualImmediate(Register, Register, Bits),
-    FloatEqual(Register, Register, Register),
-    FloatEqualImmediate(Register, Register, Bits),
-    FloatNotEqual(Register, Register, Register),
-    FloatNotEqualImmediate(Register, Register, Bits),
     FloatNegate(Register, Register),
     FloatNegateImmediate(Register, Bits),
 
@@ -80,10 +76,6 @@ pub enum Instruction {
     SignedGreaterThanOrEqualImmediate(Register, Register, Bits),
     SignedLessThanOrEqual(Register, Register, Register),
     SignedLessThanOrEqualImmediate(Register, Register, Bits),
-    SignedEqual(Register, Register, Register),
-    SignedEqualImmediate(Register, Register, Bits),
-    SignedNotEqual(Register, Register, Register),
-    SignedNotEqualImmediate(Register, Register, Bits),
     SignedNegate(Register, Register),
     SignedNegateImmediate(Register, Bits),
 
@@ -119,6 +111,8 @@ pub enum Instruction {
 
     Call(Address),
     Return,
+
+    SystemCall
 }
 
 fn get_qb(program: &[u8; INSTRUCTION_SIZE as usize], index: usize) -> (u32, u8) {
@@ -386,212 +380,187 @@ impl Instruction {
                 let rhs = rhs.to_le_bytes();
                 [44, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
             }
-            Instruction::FloatEqual(dst, lhs, rhs) => {
-                [45, *dst, *lhs, *rhs, 0, 0, 0, 0]
-            }
-            Instruction::FloatEqualImmediate(dst, lhs, rhs) => {
-                let rhs = rhs.to_le_bytes();
-                [46, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
-            }
-            Instruction::FloatNotEqual(dst, lhs, rhs) => {
-                [47, *dst, *lhs, *rhs, 0, 0, 0, 0]
-            }
-            Instruction::FloatNotEqualImmediate(dst, lhs, rhs) => {
-                let rhs = rhs.to_le_bytes();
-                [48, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
-            }
             Instruction::FloatNegate(dst, src) => {
-                [49, *dst, *src, 0, 0, 0, 0, 0]
+                [45, *dst, *src, 0, 0, 0, 0, 0]
             }
             Instruction::FloatNegateImmediate(dst, src) => {
                 let src = src.to_le_bytes();
-                [50, *dst, 0, src[0], src[1], src[2], src[3], 0]
+                [46, *dst, 0, src[0], src[1], src[2], src[3], 0]
             }
 
             Instruction::SignedAdd(dst, lhs, rhs) => {
-                [51, *dst, *lhs, *rhs, 0, 0, 0, 0]
+                [47, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::SignedAddImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [52, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [48, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
             }
             Instruction::SignedSub(dst, lhs, rhs) => {
-                [53, *dst, *lhs, *rhs, 0, 0, 0, 0]
+                [49, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::SignedSubImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [54, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [50, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
             }
             Instruction::SignedMul(dst, lhs, rhs) => {
-                [55, *dst, *lhs, *rhs, 0, 0, 0, 0]
+                [51, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::SignedMulImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [56, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [52, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
             }
             Instruction::SignedDiv(dst, lhs, rhs) => {
-                [57, *dst, *lhs, *rhs, 0, 0, 0, 0]
+                [53, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::SignedDivImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [58, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [54, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
             }
             Instruction::SignedMod(dst, lhs, rhs) => {
-                [59, *dst, *lhs, *rhs, 0, 0, 0, 0]
+                [55, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::SignedModImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [60, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [56, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
             }
             Instruction::SignedDivMod(dst, dst2, lhs, rhs) => {
-                [61, *dst, *dst2, *lhs, *rhs, 0, 0, 0]
+                [57, *dst, *dst2, *lhs, *rhs, 0, 0, 0]
             }
             Instruction::SignedDivModImmediate(dst, dst2, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [62, *dst, *dst2, *lhs, 0, rhs[0], rhs[1], rhs[2]]
+                [58, *dst, *dst2, *lhs, 0, rhs[0], rhs[1], rhs[2]]
             }
 
             Instruction::SignedGreaterThan(dst, lhs, rhs) => {
-                [63, *dst, *lhs, *rhs, 0, 0, 0, 0]
+                [59, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::SignedGreaterThanImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [64, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [60, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
             }
             Instruction::SignedLessThan(dst, lhs, rhs) => {
-                [65, *dst, *lhs, *rhs, 0, 0, 0, 0]
+                [61, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::SignedLessThanImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [66, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [62, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
             }
             Instruction::SignedGreaterThanOrEqual(dst, lhs, rhs) => {
-                [67, *dst, *lhs, *rhs, 0, 0, 0, 0]
+                [63, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::SignedGreaterThanOrEqualImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [68, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [64, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
             }
             Instruction::SignedLessThanOrEqual(dst, lhs, rhs) => {
-                [69, *dst, *lhs, *rhs, 0, 0, 0, 0]
+                [65, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::SignedLessThanOrEqualImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [70, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
-            }
-            Instruction::SignedEqual(dst, lhs, rhs) => {
-                [71, *dst, *lhs, *rhs, 0, 0, 0, 0]
-            }
-            Instruction::SignedEqualImmediate(dst, lhs, rhs) => {
-                let rhs = rhs.to_le_bytes();
-                [72, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
-            }
-            Instruction::SignedNotEqual(dst, lhs, rhs) => {
-                [73, *dst, *lhs, *rhs, 0, 0, 0, 0]
-            }
-            Instruction::SignedNotEqualImmediate(dst, lhs, rhs) => {
-                let rhs = rhs.to_le_bytes();
-                [74, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [66, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
             }
             Instruction::SignedNegate(dst, src) => {
-                [75, *dst, *src, 0, 0, 0, 0, 0]
+                [67, *dst, *src, 0, 0, 0, 0, 0]
             }
             Instruction::SignedNegateImmediate(dst, src) => {
                 let src = src.to_le_bytes();
-                [76, *dst, 0, src[0], src[1], src[2], src[3], 0]
+                [68, *dst, 0, src[0], src[1], src[2], src[3], 0]
             }
 
             Instruction::Not(dst, src) => {
-                [77, *dst, *src, 0, 0, 0, 0, 0]
+                [69, *dst, *src, 0, 0, 0, 0, 0]
             }
             Instruction::NotImmediate(dst, src) => {
                 let src = src.to_le_bytes();
-                [78, *dst, 0, src[0], src[1], src[2], src[3], 0]
+                [70, *dst, 0, src[0], src[1], src[2], src[3], 0]
             }
             Instruction::And(dst, lhs, rhs) => {
-                [79, *dst, *lhs, *rhs, 0, 0, 0, 0]
+                [71, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::AndImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [80, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [72, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
             }
             Instruction::Or(dst, lhs, rhs) => {
-                [81, *dst, *lhs, *rhs, 0, 0, 0, 0]
+                [73, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::OrImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [82, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [74, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
             }
             Instruction::Xor(dst, lhs, rhs) => {
-                [83, *dst, *lhs, *rhs, 0, 0, 0, 0]
+                [75, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::XorImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [84, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [76, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
             }
             Instruction::ShiftLeft(dst, lhs, rhs) => {
-                [85, *dst, *lhs, *rhs, 0, 0, 0, 0]
+                [77, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::ShiftLeftImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [86, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [78, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
             }
             Instruction::ShiftRight(dst, lhs, rhs) => {
-                [87, *dst, *lhs, *rhs, 0, 0, 0, 0]
+                [79, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::ShiftRightImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [88, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [80, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
             }
 
             Instruction::Jump(reg) => {
-                [89, *reg, 0, 0, 0, 0, 0, 0]
+                [81, *reg, 0, 0, 0, 0, 0, 0]
             }
             Instruction::JumpImmediate(addr) => {
                 let addr = addr.to_le_bytes();
-                [90, 0, 0, addr[0], addr[1], addr[2], addr[3], 0]
+                [82, 0, 0, addr[0], addr[1], addr[2], addr[3], 0]
             }
             Instruction::JumpNotZero(reg, dst) => {
-                [91, *reg, *dst, 0, 0, 0, 0, 0]
+                [83, *reg, *dst, 0, 0, 0, 0, 0]
             }
             Instruction::JumpNotZeroImmediate(reg, addr) => {
                 let addr = addr.to_le_bytes();
-                [92, *reg, 0, addr[0], addr[1], addr[2], addr[3], 0]
+                [84, *reg, 0, addr[0], addr[1], addr[2], addr[3], 0]
             }
 
             Instruction::Move(dst, src) => {
-                [93, *dst, *src, 0, 0, 0, 0, 0]
+                [85, *dst, *src, 0, 0, 0, 0, 0]
             }
             Instruction::MoveImmediate(dst, src) => {
                 let src = src.to_le_bytes();
-                [94, *dst, 0, src[0], src[1], src[2], src[3], 0]
+                [86, *dst, 0, src[0], src[1], src[2], src[3], 0]
             }
 
             Instruction::Push(reg) => {
-                [95, *reg, 0, 0, 0, 0, 0, 0]
+                [87, *reg, 0, 0, 0, 0, 0, 0]
             }
             Instruction::PushImmediate(val) => {
                 let val = val.to_le_bytes();
-                [96, 0, 0, val[0], val[1], val[2], val[3], 0]
+                [88, 0, 0, val[0], val[1], val[2], val[3], 0]
             }
             Instruction::Pop(reg) => {
-                [97, *reg, 0, 0, 0, 0, 0, 0]
+                [89, *reg, 0, 0, 0, 0, 0, 0]
             }
 
             Instruction::Store(dst, src, bytes_num) => {
                 let dst = dst.to_le_bytes();
-                [98, dst[0], dst[1], dst[2], dst[3], *src, *bytes_num, 0]
+                [90, dst[0], dst[1], dst[2], dst[3], *src, *bytes_num, 0]
             }
             Instruction::Load(dst, src, byte_num) => {
-                [99, *dst, *src, *byte_num, 0, 0, 0, 0]
+                [91, *dst, *src, *byte_num, 0, 0, 0, 0]
             }
 
             Instruction::Call(address) => {
                 let address = address.to_le_bytes();
-                [100, address[0], address[1], address[2], address[3], 0, 0, 0]
+                [92, address[0], address[1], address[2], address[3], 0, 0, 0]
             }
             Instruction::Return => {
-                [101, 0, 0, 0, 0, 0, 0, 0]
+                [93, 0, 0, 0, 0, 0, 0, 0]
+            }
+            Instruction::SystemCall => {
+                [94, 0, 0, 0, 0, 0, 0, 0]
             }
         }
     }
@@ -780,240 +749,211 @@ impl Instruction {
                 let (dist_reg, reg_lhs, bits) = get_bbd(&bytes, 1);
                 Instruction::FloatLessThanOrEqualImmediate(dist_reg, reg_lhs, bits)
             }
-            45 => { // Instruction::FloatEqual
-                let (dist_reg, reg_lhs, reg_rhs) = get_bbb(&bytes, 1);
-                Instruction::FloatEqual(dist_reg, reg_lhs, reg_rhs)
-            }
-            46 => { // Instruction::FloatEqualImmediate
-                let (dist_reg, reg_lhs, bits) = get_bbd(&bytes, 1);
-                Instruction::FloatEqualImmediate(dist_reg, reg_lhs, bits)
-            }
-            47 => { // Instruction::FloatNotEqual
-                let (dist_reg, reg_lhs, reg_rhs) = get_bbb(&bytes, 1);
-                Instruction::FloatNotEqual(dist_reg, reg_lhs, reg_rhs)
-            }
-            48 => { // Instruction::FloatNotEqualImmediate
-                let (dist_reg, reg_lhs, bits) = get_bbd(&bytes, 1);
-                Instruction::FloatNotEqualImmediate(dist_reg, reg_lhs, bits)
-            }
-            49 => { // Instruction::FloatNegate
+            45 => { // Instruction::FloatNegate
                 let (dist_reg, reg_lhs) = get_bb(&bytes, 1);
                 Instruction::FloatNegate(dist_reg, reg_lhs)
             }
-            50 => { // Instruction::FloatNegateImmediate
+            46 => { // Instruction::FloatNegateImmediate
                 let (dist_reg, bits) = get_bd(&bytes, 1);
                 Instruction::FloatNegateImmediate(dist_reg, bits)
             }
 
-            51 => { // Instruction::SignedAdd
+            47 => { // Instruction::SignedAdd
                 let (dist_reg, reg_lhs, reg_rhs) = get_bbb(&bytes, 1);
                 Instruction::SignedAdd(dist_reg, reg_lhs, reg_rhs)
             }
-            52 => { // Instruction::SignedAddImmediate
+            48 => { // Instruction::SignedAddImmediate
                 let (dist_reg, reg_lhs, bits) = get_bbd(&bytes, 1);
                 Instruction::SignedAddImmediate(dist_reg, reg_lhs, bits)
             }
-            53 => { // Instruction::SignedSub
+            49 => { // Instruction::SignedSub
                 let (dist_reg, reg_lhs, reg_rhs) = get_bbb(&bytes, 1);
                 Instruction::SignedSub(dist_reg, reg_lhs, reg_rhs)
             }
-            54 => { // Instruction::SignedSubImmediate
+            50 => { // Instruction::SignedSubImmediate
                 let (dist_reg, reg_lhs, bits) = get_bbd(&bytes, 1);
                 Instruction::SignedSubImmediate(dist_reg, reg_lhs, bits)
             }
-            55 => { // Instruction::SignedMul
+            51 => { // Instruction::SignedMul
                 let (dist_reg, reg_lhs, reg_rhs) = get_bbb(&bytes, 1);
                 Instruction::SignedMul(dist_reg, reg_lhs, reg_rhs)
             }
-            56 => { // Instruction::SignedMulImmediate
+            52 => { // Instruction::SignedMulImmediate
                 let (dist_reg, reg_lhs, bits) = get_bbd(&bytes, 1);
                 Instruction::SignedMulImmediate(dist_reg, reg_lhs, bits)
             }
-            57 => { // Instruction::SignedDiv
+            53 => { // Instruction::SignedDiv
                 let (dist_reg, reg_lhs, reg_rhs) = get_bbb(&bytes, 1);
                 Instruction::SignedDiv(dist_reg, reg_lhs, reg_rhs)
             }
-            58 => { // Instruction::SignedDivImmediate
+            54 => { // Instruction::SignedDivImmediate
                 let (dist_reg, reg_lhs, bits) = get_bbd(&bytes, 1);
                 Instruction::SignedDivImmediate(dist_reg, reg_lhs, bits)
             }
-            59 => { // Instruction::SignedMod
+            55 => { // Instruction::SignedMod
                 let (dist_reg, reg_lhs, reg_rhs) = get_bbb(&bytes, 1);
                 Instruction::SignedMod(dist_reg, reg_lhs, reg_rhs)
             }
-            60 => { // Instruction::SignedModImmediate
+            56 => { // Instruction::SignedModImmediate
                 let (dist_reg, reg_lhs, bits) = get_bbd(&bytes, 1);
                 Instruction::SignedModImmediate(dist_reg, reg_lhs, bits)
             }
-            61 => { // Instruction::SignedDivMod
+            57 => { // Instruction::SignedDivMod
                 let (dist_reg1, dist_reg2, reg_lhs, reg_rhs) = get_bbbb(&bytes, 1);
                 Instruction::SignedDivMod(dist_reg1, dist_reg2, reg_lhs, reg_rhs)
             }
-            62 => { // Instruction::SignedDivModImmediate
+            58 => { // Instruction::SignedDivModImmediate
                 let (dist_reg1, dist_reg2, reg_lhs, bits) = get_bbbd(&bytes, 1);
                 Instruction::SignedDivModImmediate(dist_reg1, dist_reg2, reg_lhs, bits)
             }
 
-            63 => { // Instruction::SignedGreaterThan
+            59 => { // Instruction::SignedGreaterThan
                 let (dist_reg, reg_lhs, reg_rhs) = get_bbb(&bytes, 1);
                 Instruction::SignedGreaterThan(dist_reg, reg_lhs, reg_rhs)
             }
-            64 => { // Instruction::SignedGreaterThanImmediate
+            60 => { // Instruction::SignedGreaterThanImmediate
                 let (dist_reg, reg_lhs, bits) = get_bbd(&bytes, 1);
                 Instruction::SignedGreaterThanImmediate(dist_reg, reg_lhs, bits)
             }
-            65 => { // Instruction::SignedLessThan
+            61 => { // Instruction::SignedLessThan
                 let (dist_reg, reg_lhs, reg_rhs) = get_bbb(&bytes, 1);
                 Instruction::SignedLessThan(dist_reg, reg_lhs, reg_rhs)
             }
-            66 => { // Instruction::SignedLessThanImmediate
+            62 => { // Instruction::SignedLessThanImmediate
                 let (dist_reg, reg_lhs, bits) = get_bbd(&bytes, 1);
                 Instruction::SignedLessThanImmediate(dist_reg, reg_lhs, bits)
             }
-            67 => { // Instruction::SignedGreaterThanOrEqual
+            63 => { // Instruction::SignedGreaterThanOrEqual
                 let (dist_reg, reg_lhs, reg_rhs) = get_bbb(&bytes, 1);
                 Instruction::SignedGreaterThanOrEqual(dist_reg, reg_lhs, reg_rhs)
             }
-            68 => { // Instruction::SignedGreaterThanOrEqualImmediate
+            64 => { // Instruction::SignedGreaterThanOrEqualImmediate
                 let (dist_reg, reg_lhs, bits) = get_bbd(&bytes, 1);
                 Instruction::SignedGreaterThanOrEqualImmediate(dist_reg, reg_lhs, bits)
             }
-            69 => { // Instruction::SignedLessThanOrEqual
+            65 => { // Instruction::SignedLessThanOrEqual
                 let (dist_reg, reg_lhs, reg_rhs) = get_bbb(&bytes, 1);
                 Instruction::SignedLessThanOrEqual(dist_reg, reg_lhs, reg_rhs)
             }
-            70 => { // Instruction::SignedLessThanOrEqualImmediate
+            66 => { // Instruction::SignedLessThanOrEqualImmediate
                 let (dist_reg, reg_lhs, bits) = get_bbd(&bytes, 1);
                 Instruction::SignedLessThanOrEqualImmediate(dist_reg, reg_lhs, bits)
             }
-            71 => { // Instruction::SignedEqual
-                let (dist_reg, reg_lhs, reg_rhs) = get_bbb(&bytes, 1);
-                Instruction::SignedEqual(dist_reg, reg_lhs, reg_rhs)
-            }
-            72 => { // Instruction::SignedEqualImmediate
-                let (dist_reg, reg_lhs, bits) = get_bbd(&bytes, 1);
-                Instruction::SignedEqualImmediate(dist_reg, reg_lhs, bits)
-            }
-            73 => { // Instruction::SignedNotEqual
-                let (dist_reg, reg_lhs, reg_rhs) = get_bbb(&bytes, 1);
-                Instruction::SignedNotEqual(dist_reg, reg_lhs, reg_rhs)
-            }
-            74 => { // Instruction::SignedNotEqualImmediate
-                let (dist_reg, reg_lhs, bits) = get_bbd(&bytes, 1);
-                Instruction::SignedNotEqualImmediate(dist_reg, reg_lhs, bits)
-            }
-            75 => { // Instruction::SignedNegate
+            67 => { // Instruction::SignedNegate
                 let (dist_reg, reg_lhs) = get_bb(&bytes, 1);
                 Instruction::SignedNegate(dist_reg, reg_lhs)
             }
-            76 => { // Instruction::SignedNegateImmediate
+            68 => { // Instruction::SignedNegateImmediate
                 let (dist_reg, bits) = get_bd(&bytes, 1);
                 Instruction::SignedNegateImmediate(dist_reg, bits)
             }
 
-            77 => { // Instruction::Not
+            69 => { // Instruction::Not
                 let (dist_reg, reg_lhs) = get_bb(&bytes, 1);
                 Instruction::Not(dist_reg, reg_lhs)
             }
-            78 => { // Instruction::NotImmediate
+            70 => { // Instruction::NotImmediate
                 let (dist_reg, bits) = get_bd(&bytes, 1);
                 Instruction::NotImmediate(dist_reg, bits)
             }
-            79 => { // Instruction::And
+            71 => { // Instruction::And
                 let (dist_reg, reg_lhs, reg_rhs) = get_bbb(&bytes, 1);
                 Instruction::And(dist_reg, reg_lhs, reg_rhs)
             }
-            80 => { // Instruction::AndImmediate
+            72 => { // Instruction::AndImmediate
                 let (dist_reg, reg_lhs, bits) = get_bbd(&bytes, 1);
                 Instruction::AndImmediate(dist_reg, reg_lhs, bits)
             }
-            81 => { // Instruction::Or
+            73 => { // Instruction::Or
                 let (dist_reg, reg_lhs, reg_rhs) = get_bbb(&bytes, 1);
                 Instruction::Or(dist_reg, reg_lhs, reg_rhs)
             }
-            82 => { // Instruction::OrImmediate
+            74 => { // Instruction::OrImmediate
                 let (dist_reg, reg_lhs, bits) = get_bbd(&bytes, 1);
                 Instruction::OrImmediate(dist_reg, reg_lhs, bits)
             }
-            83 => { // Instruction::Xor
+            75 => { // Instruction::Xor
                 let (dist_reg, reg_lhs, reg_rhs) = get_bbb(&bytes, 1);
                 Instruction::Xor(dist_reg, reg_lhs, reg_rhs)
             }
-            84 => { // Instruction::XorImmediate
+            76 => { // Instruction::XorImmediate
                 let (dist_reg, reg_lhs, bits) = get_bbd(&bytes, 1);
                 Instruction::XorImmediate(dist_reg, reg_lhs, bits)
             }
-            85 => { // Instruction::ShiftLeft
+            77 => { // Instruction::ShiftLeft
                 let (dist_reg, reg_lhs, reg_rhs) = get_bbb(&bytes, 1);
                 Instruction::ShiftLeft(dist_reg, reg_lhs, reg_rhs)
             }
-            86 => { // Instruction::ShiftLeftImmediate
+            78 => { // Instruction::ShiftLeftImmediate
                 let (dist_reg, reg_lhs, bits) = get_bbd(&bytes, 1);
                 Instruction::ShiftLeftImmediate(dist_reg, reg_lhs, bits)
             }
-            87 => { // Instruction::ShiftRight
+            79 => { // Instruction::ShiftRight
                 let (dist_reg, reg_lhs, reg_rhs) = get_bbb(&bytes, 1);
                 Instruction::ShiftRight(dist_reg, reg_lhs, reg_rhs)
             }
-            88 => { // Instruction::ShiftRightImmediate
+            80 => { // Instruction::ShiftRightImmediate
                 let (dist_reg, reg_lhs, bits) = get_bbd(&bytes, 1);
                 Instruction::ShiftRightImmediate(dist_reg, reg_lhs, bits)
             }
 
-            89 => { // Instruction::Jump
+            81 => { // Instruction::Jump
                 let reg = get_b(&bytes, 1);
                 Instruction::Jump(reg)
             }
-            90 => { // Instruction::JumpImmediate
+            82 => { // Instruction::JumpImmediate
                 let bits = get_d(&bytes, 1);
                 Instruction::JumpImmediate(bits)
             }
-            91 => { // Instruction::JumpNotZero
+            83 => { // Instruction::JumpNotZero
                 let (reg_cnd, reg_jmp) = get_bb(&bytes, 1);
                 Instruction::JumpNotZero(reg_cnd, reg_jmp)
             }
-            92 => { // Instruction::JumpNotZeroImmediate
+            84 => { // Instruction::JumpNotZeroImmediate
                 let (reg_cnd, bits) = get_bd(&bytes, 1);
                 Instruction::JumpNotZeroImmediate(reg_cnd, bits)
             }
 
-            93 => { // Instruction::Move
+            85 => { // Instruction::Move
                 let (dist_reg, source_reg) = get_bb(&bytes, 1);
                 Instruction::Move(dist_reg, source_reg)
             }
-            94 => { // Instruction::MoveImmediate
+            86 => { // Instruction::MoveImmediate
                 let (dist_reg, bits) = get_bd(&bytes, 1);
                 Instruction::MoveImmediate(dist_reg, bits)
             }
 
-            95 => { // Instruction::Push
+            87 => { // Instruction::Push
                 let reg = get_b(&bytes, 1);
                 Instruction::Push(reg)
             }
-            96 => { // Instruction::PushImmediate
+            88 => { // Instruction::PushImmediate
                 let bits = get_d(&bytes, 1);
                 Instruction::PushImmediate(bits)
             }
-            97 => { // Instruction::Pop
+            89 => { // Instruction::Pop
                 let reg = get_b(&bytes, 1);
                 Instruction::Pop(reg)
             }
 
-            98 => { // Instruction::Store
+            90 => { // Instruction::Store
                 let (store_address, value_reg, byte_num) = get_dbb(&bytes, 1);
                 Instruction::Store(store_address, value_reg, byte_num)
             }
-            99 => { // Instruction::Load
+            91 => { // Instruction::Load
                 let (dist_reg, source_reg, byte_num) = get_bbb(&bytes, 1);
                 Instruction::Load(dist_reg, source_reg, byte_num)
             }
 
-            100 => { // Instruction::Call
+            92 => { // Instruction::Call
                 let address = get_d(&bytes, 1);
                 Instruction::Call(address)
             }
-            101 => { // Instruction::Return
+            93 => { // Instruction::Return
                 Instruction::Return
+            }
+            94 => { // Instruction::SystemCall
+                Instruction::SystemCall
             }
             _ => unimplemented!(),
         }
