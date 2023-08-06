@@ -8,3 +8,8 @@ The first 8 bytes is for versioning,
 2 bytes for major, 2 bytes for minor, 2 bytes for incremental, 2 bytes are reserved.
 The following bytes are the program instructions, which are only 8 bytes big.
 
+### Argument Handling
+Argument to functions are pushed into the stack, 
+since the address is pushed into a different stack, 
+meaning the address won't interfere.
+
