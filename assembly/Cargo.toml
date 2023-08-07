@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 pest = "2.6.0"
 pest_derive = "2.6.0"
+bffcore = { path = "../core" }
+

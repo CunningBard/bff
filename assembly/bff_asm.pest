@@ -8,129 +8,129 @@ unsigned = @{ ASCII_DIGIT+ }
 signed = @{ "-"? ~ ASCII_DIGIT+ }
 float = @{ signed ~ "." ~ unsigned }
 
-value = _{ float | signed | unsigned | register }
+value = _{ float | unsigned | signed  | register }
+literals = {float | unsigned | signed}
 
-value_pair = _{
-    register ~ "," ~ value
+operation_type = { "u" | "s" | "f" }
+
+
+
+label = { identifier ~ ":" }
+
+move_ = {
+    register ~ "=" ~ (register | (operation_type ~ literals))
 }
 
-reg_assign = _{
-    register ~ "=" ~ value
-}
-
-operation_type = _{ "u" | "s" | "f" }
-
-
-
-move_ = _{
-    reg_assign ~ (register | float | signed | unsigned)
-}
-
-equal = _{
+equal = {
     register ~ "=" ~ register ~ "==" ~ value
 }
 
-not_equal = _{
+not_equal = {
     register ~ "=" ~ register ~ "!=" ~ value
 }
 
-not = _{
+not = {
     register ~ "=" ~ "!" ~ value
 }
 
-and = _{
+
+and = {
     register ~ "=" ~ register ~ "&&" ~ value
 }
 
-or = _{
+or = {
     register ~ "=" ~ register ~ "||" ~ value
 }
 
-xor = _{
+xor = {
     register ~ "=" ~ register ~ "^^" ~ value
 }
 
-shift_left = _{
-    register ~ "=" ~ operation_type ~ register ~ "<<" ~ value
+shift_left = {
+    register ~ "=" ~ register ~ "<<" ~ value
 }
 
-shift_right = _{
-    register ~ "=" ~ operation_type ~ register ~ ">>" ~ value
+shift_right = {
+    register ~ "=" ~ register ~ ">>" ~ value
 }
 
-jump = _{
+jump = {
     "jmp" ~ identifier
 }
 
-jnz = _{
+jnz = {
     "jnz" ~ identifier
 }
 
-push = _{
+push = {
     "push" ~ value
 }
 
-pop = _{
+pop = {
     "pop" ~ register
 }
 
-call = _{
+call = {
     "call" ~ (identifier | unsigned)
 }
 
-ret = _{
+ret = {
     "ret"
 }
 
-store = _{
+syscall = {
+    "syscall" ~ (identifier | unsigned)
+}
+
+store = {
     (unsigned | register) ~ "<-" ~ register ~ ("0" | "2" | "3" )?
 }
 
-load = _{
+load = {
     register ~ "<-" ~ (unsigned | register) ~ ("0" | "2" | "3" )?
 }
 
-add = _{
+add = {
     register ~ "=" ~ operation_type ~ register ~ "+" ~ value
 }
 
-sub = _{
+sub = {
     register ~ "=" ~ operation_type ~ register ~ "-" ~ value
 }
 
-mul = _{
+mul = {
     register ~ "=" ~ operation_type ~ register ~ "*" ~ value
 }
 
-div = _{
+div = {
     register ~ "=" ~ operation_type ~ register ~ "/" ~ value
 }
 
-mod_ = _{
+mod_ = {
     register ~ "=" ~ operation_type ~ register ~ "%" ~ value
 }
 
-divmod = _{
+divmod = {
     register ~ "," ~ register ~ "=" ~ operation_type ~ register ~ "/%" ~ value
 }
 
-greater_than = _{
+greater_than = {
     register ~ "=" ~ operation_type ~ register ~ ">" ~ value
 }
 
-less_than = _{
+less_than = {
     register ~ "=" ~ operation_type ~ register ~ "<" ~ value
 }
 
-greater_than_or_equal = _{
+greater_than_or_equal = {
     register ~ "=" ~ operation_type ~ register ~ ">=" ~ value
 }
 
-less_than_or_equal = _{
+less_than_or_equal = {
     register ~ "=" ~ operation_type ~ register ~ "<=" ~ value
 }
 
-negate = _{
+negate = {
     register ~ "=" ~ operation_type ~ "-" ~ value
 }
 
@@ -141,7 +141,12 @@ negate = _{
 
 
 statement = _{
-    natural_newline
+    natural_newline* ~ (
+        move_ | equal | not_equal | not | and | or | xor | shift_left |
+        shift_right | jump | jnz | push | pop | call | ret | syscall |
+        store | load | add | sub | mul | div | mod_ | divmod | greater_than |
+        less_than | greater_than_or_equal | less_than_or_equal | negate
+    ) ~ natural_newline*
 }
 
 
