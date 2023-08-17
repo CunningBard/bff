@@ -12,6 +12,7 @@ value = _{ float | unsigned | signed  | register }
 literals = {float | unsigned | signed}
 
 operation_type = { "u" | "s" | "f" }
+size = {"0" | "2" | "3" }
 
 
 
@@ -59,7 +60,7 @@ jump = {
 }
 
 jnz = {
-    "jnz" ~ identifier
+    "jnz" ~ register ~ "," ~ identifier
 }
 
 push = {
@@ -71,7 +72,7 @@ pop = {
 }
 
 call = {
-    "call" ~ (identifier | unsigned)
+    "call" ~ identifier
 }
 
 ret = {
@@ -79,15 +80,16 @@ ret = {
 }
 
 syscall = {
-    "syscall" ~ (identifier | unsigned)
+//     "syscall" ~ (identifier | unsigned)
+    "syscall"
 }
 
 store = {
-    (unsigned | register) ~ "<-" ~ register ~ ("0" | "2" | "3" )?
+    (unsigned | register) ~ "<-" ~ register ~ size
 }
 
 load = {
-    register ~ "<-" ~ (unsigned | register) ~ ("0" | "2" | "3" )?
+    register ~ "<-" ~ (unsigned | register) ~ size
 }
 
 add = {
@@ -145,7 +147,7 @@ statement = _{
         move_ | equal | not_equal | not | and | or | xor | shift_left |
         shift_right | jump | jnz | push | pop | call | ret | syscall |
         store | load | add | sub | mul | div | mod_ | divmod | greater_than |
-        less_than | greater_than_or_equal | less_than_or_equal | negate
+        less_than | greater_than_or_equal | less_than_or_equal | negate | label
     ) ~ natural_newline*
 }
 
