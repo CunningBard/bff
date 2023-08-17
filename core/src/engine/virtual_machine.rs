@@ -36,6 +36,52 @@ impl VirtualMachine {
         self.stack[self.registers[STACK_POINTER as usize] as usize] = value;
         self.registers[STACK_POINTER as usize] += 1;
     }
+    fn store(&mut self, address: Address, value: Bits, size: u8) {
+        match size {
+            0 => {
+                let value = value.to_le_bytes();
+                self.memory[address as usize] = value[0];
+                self.memory[address as usize + 1] = value[1];
+                self.memory[address as usize + 2] = value[2];
+                self.memory[address as usize + 3] = value[3];
+            }
+            2 => {
+                let value = (value as u16).to_le_bytes();
+                self.memory[address as usize] = value[0];
+                self.memory[address as usize + 1] = value[1];
+            }
+            3 => {
+                self.memory[address as usize] = value as u8;
+            }
+            _ => {
+                panic!("byte size is invalid! for store instruction");
+            }
+        }
+    }
+    fn load(&mut self, address: Address, size: u8) -> Bits {
+        match size {
+            0 => {
+                let mut value = [0; 4];
+                value[0] = self.memory[address as usize];
+                value[1] = self.memory[address as usize + 1];
+                value[2] = self.memory[address as usize + 2];
+                value[3] = self.memory[address as usize + 3];
+                Bits::from_le_bytes(value)
+            }
+            2 => {
+                let mut value = [0; 2];
+                value[0] = self.memory[address as usize];
+                value[1] = self.memory[address as usize + 1];
+                u16::from_le_bytes(value) as Bits
+            }
+            3 => {
+                self.memory[address as usize] as Bits
+            }
+            _ => {
+                panic!("byte size is invalid! for load instruction");
+            }
+        }
+    }
     pub fn execute_single_instruction(&mut self){
         let instruction = &self.instruction_list[self.program_counter];
         match *instruction {
@@ -336,50 +382,17 @@ impl VirtualMachine {
             }
 
             Instruction::Store(address, src, byte_num) => {
-                match byte_num {
-                    0 => {
-                        let value = self.registers[src as usize].to_le_bytes();
-                        self.memory[address as usize] = value[0];
-                        self.memory[address as usize + 1] = value[1];
-                        self.memory[address as usize + 2] = value[2];
-                        self.memory[address as usize + 3] = value[3];
-                    }
-                    2 => {
-                        let value = (self.registers[src as usize] as u16).to_le_bytes();
-                        self.memory[address as usize] = value[0];
-                        self.memory[address as usize + 1] = value[1];
-                    }
-                    3 => {
-                        self.memory[address as usize] = self.registers[src as usize] as u8;
-                    }
-                    _ => {
-                        panic!("byte size is invalid! for store instruction");
-                    }
-                }
+                let address = self.registers[address as usize];
+                self.store(address, self.registers[src as usize], byte_num)
+            }
+            Instruction::DirectStore(address, src, byte_num) => {
+                self.store(address, self.registers[src as usize], byte_num)
             }
             Instruction::Load(dst, address, byte_num) => {
-                self.registers[dst as usize] = match byte_num {
-                    0 => {
-                        let mut value = [0u8; 4];
-                        value[0] = self.memory[address as usize];
-                        value[1] = self.memory[address as usize + 1];
-                        value[2] = self.memory[address as usize + 2];
-                        value[3] = self.memory[address as usize + 3];
-                        u32::from_le_bytes(value)
-                    }
-                    2 => {
-                        let mut value = [0u8; 2];
-                        value[0] = self.memory[address as usize];
-                        value[1] = self.memory[address as usize + 1];
-                        u16::from_le_bytes(value) as u32
-                    }
-                    3 => {
-                        self.memory[address as usize] as u32
-                    }
-                    _ => {
-                        panic!("byte size is invalid! for load instruction");
-                    }
-                };
+                self.registers[dst as usize] = self.load(self.registers[address as usize], byte_num);
+            }
+            Instruction::DirectLoad(dst, address, byte_num) => {
+                self.registers[dst as usize] = self.load(address, byte_num);
             }
 
             Instruction::Call(address) => {
