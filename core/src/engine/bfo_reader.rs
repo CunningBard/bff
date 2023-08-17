@@ -19,7 +19,7 @@ impl BFOReader {
             panic!("WELL SHT") // place holder error
         }
 
-        while index <= program.len() {
+        while index < program.len() {
             instructions.push(
                 Instruction::from_bfo_bytes(
                     [
