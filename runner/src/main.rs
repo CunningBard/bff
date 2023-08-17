@@ -5,7 +5,7 @@ use bffcore::engine::bfo_reader::BFOReader;
 fn main() {
     let mut args: VecDeque<String> = std::env::args().collect();
     let _path = args.pop_front().unwrap();
-    let mut file_path = "main.bfo".to_string();
+    let mut file_path = "./assembly/main.bfo".to_string();
     let mut debug = false;
 
     if args.len() > 0 && !args[0].starts_with("-"){
