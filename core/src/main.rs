@@ -16,7 +16,7 @@ fn string_to_instructions(address: u32, register: u8, input: &str) -> Vec<Instru
             instructions.extend(
                 vec![
                     Instruction::MoveImmediate(register, value),
-                    Instruction::Store(address + index as u32, register, 0)
+                    Instruction::DirectStore(address + index as u32, register, 0)
                 ]
             );
             index += 4;
@@ -27,7 +27,7 @@ fn string_to_instructions(address: u32, register: u8, input: &str) -> Vec<Instru
             instructions.extend(
                 vec![
                     Instruction::MoveImmediate(register, value as u32),
-                    Instruction::Store(address + index as u32, register, 2)
+                    Instruction::DirectStore(address + index as u32, register, 2)
                 ]
             );
             index += 2;
@@ -37,7 +37,7 @@ fn string_to_instructions(address: u32, register: u8, input: &str) -> Vec<Instru
             instructions.extend(
                 vec![
                     Instruction::MoveImmediate(register, value),
-                    Instruction::Store(address + index as u32, register, 3)
+                    Instruction::DirectStore(address + index as u32, register, 3)
                 ]
             );
             index += 1;
@@ -68,7 +68,7 @@ fn main(){
         print_string_as_instructions(
             0,
             1,
-            "Hello World!".to_string()
+            "Hello World!\n".to_string()
         );
 
 
