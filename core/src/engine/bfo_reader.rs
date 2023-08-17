@@ -14,6 +14,10 @@ impl BFOReader {
         let version_incremental = u16::from_le_bytes([program[4], program[5]]);
         let version = (version_major, version_minor, version_incremental);
 
+        if version != crate::constants::constants::VERSION {
+            eprintln!("Version Mismatch, expected {:?}, got {:?}", crate::constants::constants::VERSION, version);
+        }
+
         let mut instructions = vec![];
         if index + INSTRUCTION_SIZE as usize > program.len() {
             panic!("WELL SHT") // place holder error
