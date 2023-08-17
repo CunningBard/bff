@@ -104,8 +104,10 @@ pub enum Instruction {
     PushImmediate(Bits),
     Pop(Register),
 
-    Store(Address, Register, Byte), // load from heap, byte is the number of bytes to move i.e 1, 2, 4
+    Store(Register, Register, Byte), // store to heap, byte is the number of bytes to move i.e 1, 2, 4
+    DirectStore(Address, Register, Byte), // store to heap, byte is the number of bytes to move i.e 1, 2, 4
     Load(Register, Register, Byte), // load from heap, byte is the number of bytes to move i.e 1, 2, 4
+    DirectLoad(Register, Address, Byte), // load from heap, byte is the number of bytes to move i.e 1, 2, 4
     // for compatibility reasons, the byte part in the Store/Load instruction is subtractive, meaning that 0 is 4 bytes, 2 is 2 bytes, and 3 is 1 byte
     // this is because the Store/Load instruction was originally designed to move 4 bytes at a time, and the byte part was added later on, the byte part was unused so back then this part was always 0
 
@@ -193,6 +195,19 @@ fn get_bbb(program: &[u8; INSTRUCTION_SIZE as usize], index: usize) -> (u8, u8, 
     (reg1, reg2, reg3)
 }
 
+fn get_bdb(program: &[u8; INSTRUCTION_SIZE as usize], index: usize) -> (u8, u32, u8) {
+    let reg1 = program[index];
+    let address = u32::from_le_bytes([
+        program[index + 1],
+        program[index + 2],
+        program[index + 3],
+        program[index + 4],
+    ]);
+    let reg2 = program[index + 5];
+
+    (reg1, address, reg2)
+}
+
 fn get_bbbb(program: &[u8; INSTRUCTION_SIZE as usize], index: usize) -> (u8, u8, u8, u8) {
     let reg1 = program[index];
     let reg2 = program[index + 1];
@@ -228,35 +243,35 @@ impl Instruction {
             }
             Instruction::AddImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [2, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [2, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::Sub(dst, lhs, rhs) => {
                 [3, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::SubImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [4, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [4, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::Mul(dst, lhs, rhs) => {
                 [5, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::MulImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [6, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [6, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::Div(dst, lhs, rhs) => {
                 [7, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::DivImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [8, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [8, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::Mod(dst, lhs, rhs) => {
                 [9, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::ModImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [10, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [10, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::DivMod(dst1, dst2, lhs, rhs) => {
                 [11, *dst1, *dst2, *lhs, *rhs, 0, 0, 0]
@@ -271,42 +286,42 @@ impl Instruction {
             }
             Instruction::GreaterThanImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [14, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [14, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::LessThan(dst, lhs, rhs) => {
                 [15, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::LessThanImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [16, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [16, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::GreaterThanOrEqual(dst, lhs, rhs) => {
                 [17, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::GreaterThanOrEqualImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [18, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [18, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::LessThanOrEqual(dst, lhs, rhs) => {
                 [19, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::LessThanOrEqualImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [20, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [20, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::Equal(dst, lhs, rhs) => {
                 [21, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::EqualImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [22, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [22, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::NotEqual(dst, lhs, rhs) => {
                 [23, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::NotEqualImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [24, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [24, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
 
             Instruction::FloatAdd(dst, lhs, rhs) => {
@@ -314,35 +329,35 @@ impl Instruction {
             }
             Instruction::FloatAddImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [26, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [26, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::FloatSub(dst, lhs, rhs) => {
                 [27, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::FloatSubImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [28, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [28, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::FloatMul(dst, lhs, rhs) => {
                 [29, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::FloatMulImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [30, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [30, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::FloatDiv(dst, lhs, rhs) => {
                 [31, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::FloatDivImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [32, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [32, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::FloatMod(dst, lhs, rhs) => {
                 [33, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::FloatModImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [34, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [34, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::FloatDivMod(dst1, dst2, lhs, rhs) => {
                 [35, *dst1, *dst2, *lhs, *rhs, 0, 0, 0]
@@ -357,35 +372,35 @@ impl Instruction {
             }
             Instruction::FloatGreaterThanImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [38, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [38, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::FloatLessThan(dst, lhs, rhs) => {
                 [39, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::FloatLessThanImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [40, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [40, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::FloatGreaterThanOrEqual(dst, lhs, rhs) => {
                 [41, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::FloatGreaterThanOrEqualImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [42, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [42, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::FloatLessThanOrEqual(dst, lhs, rhs) => {
                 [43, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::FloatLessThanOrEqualImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [44, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [44, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::FloatNegate(dst, src) => {
                 [45, *dst, *src, 0, 0, 0, 0, 0]
             }
             Instruction::FloatNegateImmediate(dst, src) => {
                 let src = src.to_le_bytes();
-                [46, *dst, 0, src[0], src[1], src[2], src[3], 0]
+                [46, *dst, src[0], src[1], src[2], src[3], 0, 0]
             }
 
             Instruction::SignedAdd(dst, lhs, rhs) => {
@@ -393,42 +408,42 @@ impl Instruction {
             }
             Instruction::SignedAddImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [48, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [48, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::SignedSub(dst, lhs, rhs) => {
                 [49, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::SignedSubImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [50, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [50, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::SignedMul(dst, lhs, rhs) => {
                 [51, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::SignedMulImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [52, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [52, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::SignedDiv(dst, lhs, rhs) => {
                 [53, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::SignedDivImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [54, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [54, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::SignedMod(dst, lhs, rhs) => {
                 [55, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::SignedModImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [56, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [56, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::SignedDivMod(dst, dst2, lhs, rhs) => {
                 [57, *dst, *dst2, *lhs, *rhs, 0, 0, 0]
             }
             Instruction::SignedDivModImmediate(dst, dst2, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [58, *dst, *dst2, *lhs, 0, rhs[0], rhs[1], rhs[2]]
+                [58, *dst, *dst2, *lhs, rhs[0], rhs[1], rhs[2], 0]
             }
 
             Instruction::SignedGreaterThan(dst, lhs, rhs) => {
@@ -436,35 +451,35 @@ impl Instruction {
             }
             Instruction::SignedGreaterThanImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [60, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [60, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::SignedLessThan(dst, lhs, rhs) => {
                 [61, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::SignedLessThanImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [62, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [62, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::SignedGreaterThanOrEqual(dst, lhs, rhs) => {
                 [63, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::SignedGreaterThanOrEqualImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [64, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [64, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::SignedLessThanOrEqual(dst, lhs, rhs) => {
                 [65, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::SignedLessThanOrEqualImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [66, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [66, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::SignedNegate(dst, src) => {
                 [67, *dst, *src, 0, 0, 0, 0, 0]
             }
             Instruction::SignedNegateImmediate(dst, src) => {
                 let src = src.to_le_bytes();
-                [68, *dst, 0, src[0], src[1], src[2], src[3], 0]
+                [68, *dst, src[0], src[1], src[2], src[3], 0, 0]
             }
 
             Instruction::Not(dst, src) => {
@@ -472,42 +487,42 @@ impl Instruction {
             }
             Instruction::NotImmediate(dst, src) => {
                 let src = src.to_le_bytes();
-                [70, *dst, 0, src[0], src[1], src[2], src[3], 0]
+                [70, *dst, src[0], src[1], src[2], src[3], 0, 0]
             }
             Instruction::And(dst, lhs, rhs) => {
                 [71, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::AndImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [72, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [72, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::Or(dst, lhs, rhs) => {
                 [73, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::OrImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [74, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [74, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::Xor(dst, lhs, rhs) => {
                 [75, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::XorImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [76, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [76, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::ShiftLeft(dst, lhs, rhs) => {
                 [77, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::ShiftLeftImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [78, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [78, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
             Instruction::ShiftRight(dst, lhs, rhs) => {
                 [79, *dst, *lhs, *rhs, 0, 0, 0, 0]
             }
             Instruction::ShiftRightImmediate(dst, lhs, rhs) => {
                 let rhs = rhs.to_le_bytes();
-                [80, *dst, *lhs, 0, rhs[0], rhs[1], rhs[2], rhs[3]]
+                [80, *dst, *lhs, rhs[0], rhs[1], rhs[2], rhs[3], 0]
             }
 
             Instruction::Jump(reg) => {
@@ -515,14 +530,14 @@ impl Instruction {
             }
             Instruction::JumpImmediate(addr) => {
                 let addr = addr.to_le_bytes();
-                [82, 0, 0, addr[0], addr[1], addr[2], addr[3], 0]
+                [82, addr[0], addr[1], addr[2], addr[3], 0, 0, 0]
             }
             Instruction::JumpNotZero(reg, dst) => {
                 [83, *reg, *dst, 0, 0, 0, 0, 0]
             }
             Instruction::JumpNotZeroImmediate(reg, addr) => {
                 let addr = addr.to_le_bytes();
-                [84, *reg, 0, addr[0], addr[1], addr[2], addr[3], 0]
+                [84, *reg, addr[0], addr[1], addr[2], addr[3], 0, 0]
             }
 
             Instruction::Move(dst, src) => {
@@ -530,7 +545,7 @@ impl Instruction {
             }
             Instruction::MoveImmediate(dst, src) => {
                 let src = src.to_le_bytes();
-                [86, *dst, 0, src[0], src[1], src[2], src[3], 0]
+                [86, *dst, src[0], src[1], src[2], src[3], 0, 0]
             }
 
             Instruction::Push(reg) => {
@@ -538,29 +553,36 @@ impl Instruction {
             }
             Instruction::PushImmediate(val) => {
                 let val = val.to_le_bytes();
-                [88, 0, 0, val[0], val[1], val[2], val[3], 0]
+                [88, val[0], val[1], val[2], val[3], 0, 0, 0]
             }
             Instruction::Pop(reg) => {
                 [89, *reg, 0, 0, 0, 0, 0, 0]
             }
 
             Instruction::Store(dst, src, bytes_num) => {
+                [90, *dst, *src, *bytes_num, 0, 0, 0, 0]
+            }
+            Instruction::DirectStore(dst, val, bytes_num) => {
                 let dst = dst.to_le_bytes();
-                [90, dst[0], dst[1], dst[2], dst[3], *src, *bytes_num, 0]
+                [91, dst[0], dst[1], dst[2], dst[3], *val, *bytes_num, 0]
             }
             Instruction::Load(dst, src, byte_num) => {
-                [91, *dst, *src, *byte_num, 0, 0, 0, 0]
+                [92, *dst, *src, *byte_num, 0, 0, 0, 0]
+            }
+            Instruction::DirectLoad(dst, src, byte_num) => {
+                let src = src.to_le_bytes();
+                [93, *dst, src[0], src[1], src[2], src[3], *byte_num, 0]
             }
 
             Instruction::Call(address) => {
                 let address = address.to_le_bytes();
-                [92, address[0], address[1], address[2], address[3], 0, 0, 0]
+                [94, address[0], address[1], address[2], address[3], 0, 0, 0]
             }
             Instruction::Return => {
-                [93, 0, 0, 0, 0, 0, 0, 0]
+                [95, 0, 0, 0, 0, 0, 0, 0]
             }
             Instruction::SystemCall => {
-                [94, 0, 0, 0, 0, 0, 0, 0]
+                [96, 0, 0, 0, 0, 0, 0, 0]
             }
         }
     }
@@ -937,25 +959,33 @@ impl Instruction {
             }
 
             90 => { // Instruction::Store
-                let (store_address, value_reg, byte_num) = get_dbb(&bytes, 1);
-                Instruction::Store(store_address, value_reg, byte_num)
+                let (reg_address, value_reg, byte_num) = get_bbb(&bytes, 1);
+                Instruction::Store(reg_address, value_reg, byte_num)
             }
-            91 => { // Instruction::Load
+            91 => { // Instruction::DirectStore
+                let (reg_address, reg, byte_num) = get_dbb(&bytes, 1);
+                Instruction::DirectStore(reg_address, reg, byte_num)
+            }
+            92 => { // Instruction::Load
                 let (dist_reg, source_reg, byte_num) = get_bbb(&bytes, 1);
                 Instruction::Load(dist_reg, source_reg, byte_num)
             }
+            93 => { // Instruction::DirectLoad
+                let (dist_reg, bits, byte_num) = get_bdb(&bytes, 1);
+                Instruction::DirectLoad(dist_reg, bits, byte_num)
+            }
 
-            92 => { // Instruction::Call
+            94 => { // Instruction::Call
                 let address = get_d(&bytes, 1);
                 Instruction::Call(address)
             }
-            93 => { // Instruction::Return
+            95 => { // Instruction::Return
                 Instruction::Return
             }
-            94 => { // Instruction::SystemCall
+            96 => { // Instruction::SystemCall
                 Instruction::SystemCall
             }
-            _ => unimplemented!(),
+            opcode => unimplemented!("Unknown instruction: {}", opcode),
         }
     }
 }
