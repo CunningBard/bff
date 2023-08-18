@@ -82,6 +82,11 @@ impl VirtualMachine {
             }
         }
     }
+    pub fn store_string(&mut self, address: Address, value: &str) {
+        for (index, byte) in value.bytes().into_iter().enumerate() {
+            self.memory[address as usize + index] = byte;
+        }
+    }
     pub fn execute_single_instruction(&mut self){
         let instruction = &self.instruction_list[self.program_counter];
         match *instruction {

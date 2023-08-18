@@ -4,9 +4,11 @@ WHITESPACE = _{ " " | "\t" }
 identifier = @{ "_"* ~ ASCII_ALPHANUMERIC ~ (ASCII_ALPHANUMERIC | "_" )* }
 register = @{ "reg" ~ ASCII_DIGIT+ }
 
+sign = @{ "-" | "+" }
 unsigned = @{ ASCII_DIGIT+ }
-signed = @{ "-"? ~ ASCII_DIGIT+ }
+signed = @{ sign? ~ ASCII_DIGIT+ }
 float = @{ signed ~ "." ~ unsigned }
+string = @{ "\"" ~ (ASCII_ALPHANUMERIC | "\\" | " " )* ~ "\"" }
 
 value = _{ float | unsigned | signed  | register }
 literals = {float | unsigned | signed}
@@ -136,8 +138,9 @@ negate = {
     register ~ "=" ~ operation_type ~ "-" ~ value
 }
 
-
-
+string_store = {
+    (unsigned) ~ "<-" ~ string
+}
 
 
 
@@ -147,7 +150,7 @@ statement = _{
         move_ | equal | not_equal | not | and | or | xor | shift_left |
         shift_right | jump | jnz | push | pop | call | ret | syscall |
         store | load | add | sub | mul | div | mod_ | divmod | greater_than |
-        less_than | greater_than_or_equal | less_than_or_equal | negate | label
+        less_than | greater_than_or_equal | less_than_or_equal | negate | label | string_store
     ) ~ natural_newline*
 }
 

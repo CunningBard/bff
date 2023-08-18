@@ -12,5 +12,6 @@ bff, as of the moment is a 32 bit virtual machine, I could easily make it 64 bit
 - [x] Proper function argument handling, and storing/loading register state
 - [x] 0.1.0
 - [x] bffasm works with 0.1.0
+- - [ ] direct string storing
 - [ ] call external functions via dll
 - [ ] 0.2.0

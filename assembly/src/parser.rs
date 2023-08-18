@@ -20,7 +20,8 @@ struct BffAsmBareParser;
 pub struct BffAsmParser {
     pub intermediates: Vec<ParseIntermediate>,
     pub instructions: Vec<Instruction>,
-    pub labels: HashMap<String, usize>
+    pub labels: HashMap<String, usize>,
+    pub string_table: Vec<(Address, String)>,
 }
 
 macro_rules! get_register_number_from_next_pair {
@@ -29,12 +30,35 @@ macro_rules! get_register_number_from_next_pair {
     };
 }
 
+
+pub fn parse_string(string: &str) -> String {
+    let mut result = String::new();
+    let mut chars = string.chars();
+    while let Some(c) = chars.next() {
+        if c == '\\' {
+            match chars.next().unwrap() {
+                'n' => result.push('\n'),
+                't' => result.push('\t'),
+                'r' => result.push('\r'),
+                '\\' => result.push('\\'),
+                '"' => result.push('"'),
+                '\'' => result.push('\''),
+                _ => panic!("Invalid escape sequence"),
+            }
+        } else {
+            result.push(c);
+        }
+    }
+    result
+}
+
 impl BffAsmParser {
     pub fn new() -> BffAsmParser {
         BffAsmParser {
             intermediates: vec![],
             instructions: vec![],
-            labels: HashMap::new()
+            labels: HashMap::new(),
+            string_table: vec![],
         }
     }
 
@@ -1111,6 +1135,22 @@ impl BffAsmParser {
                         }
                         path => unreachable!("{:?}", path)
                     }
+                }
+                Rule::string_store => {
+                    if self.intermediates.len() > 0 {
+                        panic!("String store must be at the top of the file");
+                    }
+
+                    let mut inner_rules = pair.into_inner();
+                    let address = inner_rules.next().unwrap().as_str().parse::<u32>().unwrap();
+                    let string = inner_rules.next().unwrap().as_str();
+
+                    self.string_table.push(
+                        (
+                            address,
+                            parse_string(&string[1..string.len()-1])
+                        )
+                    );
                 }
 
                 Rule::EOI => {

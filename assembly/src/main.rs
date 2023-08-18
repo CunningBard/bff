@@ -14,12 +14,18 @@ fn main(){
     let contents = &*fs::read_to_string("./assembly/main.bffasm").expect("Couldnt read file");
     parser.parse(contents).expect("Couldnt parse file");
 
-    let mut bfo_program = BFFProgram::new(VERSION, parser.instructions);
+    let mut minus = 8;
+
+    for (_addr, string) in &parser.string_table {
+        minus += string.len() + 8;
+    }
+
+    let mut bfo_program = BFFProgram::new(VERSION, parser.instructions, parser.string_table);
 
     // write as bfo file
     let compiled = bfo_program.to_bfo_bytes();
     println!("Number of instructions: {:?}", compiled.len());
-    assert_eq!(compiled.len() % 8, 0, "Number of instructions is not a multiple of 8");
+    assert_eq!((compiled.len() - minus) % 8, 0, "Number of instructions is not a multiple of 8");
 
     fs::write("./assembly/main.bfo", compiled).expect("Couldnt write file");
 }
